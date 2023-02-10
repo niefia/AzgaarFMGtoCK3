@@ -1,6 +1,11 @@
 import json
 import itertools
 from PIL import Image, ImageDraw
+import sys
+
+scaling_factor = float(sys.argv[1])
+
+print (scaling_factor)
 
 
 def rasterize_geojson(geojson_file, output_dir):
@@ -18,7 +23,7 @@ def rasterize_geojson(geojson_file, output_dir):
         for poly in polygs:
             if poly["properties"]["biome"] == biome:
                 for coords in poly["geometry"]["coordinates"]:
-                    coords = [[(coord[0] * 100) + (img_width / 2), (coord[1] * 100) + (img_height / 2)] for coord in coords]
+                    coords = [[(coord[0] * scaling_factor) + (img_width / 2), (coord[1] * scaling_factor) + (img_height / 2)] for coord in coords]
                     draw.polygon(list(itertools.chain(*coords)), fill=255)
 
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
@@ -26,6 +31,5 @@ def rasterize_geojson(geojson_file, output_dir):
 
 
 rasterize_geojson("output.geojson", "terrain/")
-
 
 
