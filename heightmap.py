@@ -1,7 +1,12 @@
 import json
 import itertools
 from PIL import Image, ImageDraw
+import sys
+import numpy as np
 
+scaling_factor = float(sys.argv[1])
+
+print (scaling_factor)
 
 def rasterize_geojson(geojson_file, output_file):
     with open(geojson_file, "r") as f:
@@ -24,10 +29,10 @@ def rasterize_geojson(geojson_file, output_file):
             normalized_height = (height - min_height) * 255 / (max_height - min_height)
             color = int(normalized_height)
         for coords in poly["geometry"]["coordinates"]:
-            coords = [[(coord[0] * 100) + (img_width / 2), (coord[1] * 100) + (img_height / 2)] for coord in coords]
+            coords = [[(coord[0] * scaling_factor) + (img_width / 2), (coord[1] * scaling_factor) + (img_height / 2)] for coord in coords]
             draw.polygon(list(itertools.chain(*coords)), fill=color)
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save(output_file, "PNG")
 
 
-rasterize_geojson("output.geojson", "heightmap.png")
+rasterize_geojson("output.geojson", "map_data/heightmap.png")
