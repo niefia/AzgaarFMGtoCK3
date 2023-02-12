@@ -44,4 +44,4 @@ wb2 = openpyxl.load_workbook('provinceDef.xlsx')
 wb2.save('provinceDef.xls')
 
 # Delete the original .xlsx file
-os.remove('provinceDef.xlsx')
+os.remove('updated_file.xlsx')
