@@ -10,6 +10,7 @@ states = data["cells"]["states"]
 provinces = data["cells"]["provinces"]
 culture = data["cells"]["cultures"]
 religions = data["cells"]["religions"]
+burgs = data["cells"]["burgs"]
 
 # Create a list of dictionaries, where each dictionary represents a row of data for the states
 states_rows = []
@@ -43,6 +44,14 @@ for cell in religions:
         row = {
             "i": cell["i"],
             "name": cell["name"],
+            "color": cell["color"],
+            "name": cell["name"],
+            "culture": cell["culture"],
+            "name": cell["name"],
+            "type": cell["type"],
+            "form": cell["form"],
+            "deity": cell["deity"],
+            "center": cell["center"],
 
 
         }
@@ -59,6 +68,16 @@ for cell in culture:
         }
         cultures_rows.append(row)
 
+burgs_rows = []
+for cell in burgs:
+    if isinstance(cell, dict):
+        row = {
+            "i": cell["i"],
+            "cell": cell["cell"],
+            "name": cell["name"],
+
+        }
+        burgs_rows.append(row)
 
 
 
@@ -67,6 +86,7 @@ states_df = pd.DataFrame(states_rows, columns=["i", "name"])
 provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
 cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name"])
 religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center"])
+burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
 # Save each data frame to a separate sheet in the same Excel file
 with pd.ExcelWriter("combined_data.xlsx") as writer:
@@ -74,3 +94,4 @@ with pd.ExcelWriter("combined_data.xlsx") as writer:
     provinces_df.to_excel(writer, sheet_name="provinces", index=False)
     cultures_df.to_excel(writer, sheet_name="cultures", index=False)
     religion_df.to_excel(writer, sheet_name="religion", index=False)
+    burgs_df.to_excel(writer, sheet_name="burgs", index=False)
