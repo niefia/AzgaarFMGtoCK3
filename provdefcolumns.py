@@ -36,12 +36,5 @@ for row in ws.iter_rows(values_only=True):
 
 wb_copied_data.save("provinceDef.xlsx")
 
-
-# Load the .xlsx file
-wb2 = openpyxl.load_workbook('provinceDef.xlsx')
-
-# Save the .xlsx file as .xls
-wb2.save('provinceDef.xls')
-
 # Delete the original .xlsx file
 os.remove('updated_file.xlsx')
