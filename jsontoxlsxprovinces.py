@@ -41,21 +41,21 @@ for cell in provinces:
 religions_rows = []
 for cell in religions:
     if isinstance(cell, dict):
+        origins = cell.get("origins")
+        origin = None
+        if origins and isinstance(origins, list) and len(origins) > 0:
+            origin = origins[0]
         row = {
-            "i": cell["i"],
-            "name": cell["name"],
-            "color": cell["color"],
-            "name": cell["name"],
-            "culture": cell["culture"],
-            "name": cell["name"],
-            "type": cell["type"],
-            "form": cell["form"],
-            "deity": cell["deity"],
-            "center": cell["center"],
-
-
+            "i": cell.get("i"),
+            "name": cell.get("name"),
+            "type": cell.get("type"),
+            "form": cell.get("form"),
+            "deity": cell.get("deity"),
+            "center": cell.get("center"),
+            "origin": origin,
         }
         religions_rows.append(row)
+
 
 
 cultures_rows = []
@@ -85,7 +85,7 @@ for cell in burgs:
 states_df = pd.DataFrame(states_rows, columns=["i", "name"])
 provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
 cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name"])
-religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center"])
+religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center","origin"])
 burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
 # Save each data frame to a separate sheet in the same Excel file
