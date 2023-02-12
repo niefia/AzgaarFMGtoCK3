@@ -12,7 +12,6 @@ os.makedirs(folder_path, exist_ok=True)
 
 # Loop through the rows of the DataFrame
 for index, row in df.iterrows():
-
     name = row["name"]
     type = row["type"]
     first_word = name.split(" ")[0]
@@ -51,10 +50,15 @@ for index, row in df.iterrows():
         doctrine_clerical_marriage = random.choice(['doctrine_clerical_marriage_allowed', 'doctrine_clerical_marriage_disallowed'])
         doctrine_clerical_succession = random.choice(['doctrine_clerical_succession_temporal_appointment', 'doctrine_clerical_succession_spiritual_appointment', 'doctrine_clerical_succession_temporal_fixed_appointment','doctrine_clerical_succession_spiritual_fixed_appointment'])
         faithcolor = "{ 0.2 0.2 0.9 }"
-        tenet1 = random.choice(['tenet_aniconism', 'tenet_alexandrian_catechism', 'tenet_armed_pilgrimages','tenet_carnal_exaltation', 'tenet_communal_identity', 'tenet_communion','tenet_consolamentum', 'tenet_divine_marriage', 'tenet_gnosticism','tenet_mendicant_preachers', 'tenet_monasticism', 'tenet_pacifism','tenet_pentarchy', 'tenet_unrelenting_faith', 'tenet_vows_of_poverty','tenet_pastoral_isolation', 'tenet_adaptive','tenet_esotericism', 'tenet_legalism', 'tenet_literalism','tenet_reincarnation', 'tenet_religious_legal_pronouncements', 'tenet_struggle_submission','tenet_false_conversion_sanction', 'tenet_tax_nonbelievers', 'tenet_asceticism','tenet_bhakti', 'tenet_dharmic_pacifism','tenet_inner_journey', 'tenet_ritual_hospitality', 'tenet_adorcism','tenet_ancestor_worship', 'tenet_astrology', 'tenet_hedonistic','tenet_human_sacrifice', 'tenet_mystical_birthright', 'tenet_ritual_celebrations','tenet_sacred_childbirth','tenet_sanctity_of_nature', 'tenet_sky_burials', 'tenet_sun_worship','tenet_gruesome_festivals', 'tenet_exaltation_of_pain', 'tenet_natural_primitivism','tenet_pursuit_of_power', 'tenet_ritual_cannibalism', 'tenet_sacred_shadows','tenet_polyamory'])
-        tenet2 = random.choice(['tenet_aniconism', 'tenet_alexandrian_catechism', 'tenet_armed_pilgrimages','tenet_carnal_exaltation', 'tenet_communal_identity', 'tenet_communion','tenet_consolamentum', 'tenet_divine_marriage', 'tenet_gnosticism','tenet_mendicant_preachers', 'tenet_monasticism', 'tenet_pacifism','tenet_pentarchy', 'tenet_unrelenting_faith', 'tenet_vows_of_poverty','tenet_pastoral_isolation', 'tenet_adaptive','tenet_esotericism', 'tenet_legalism', 'tenet_literalism','tenet_reincarnation', 'tenet_religious_legal_pronouncements', 'tenet_struggle_submission','tenet_false_conversion_sanction', 'tenet_tax_nonbelievers', 'tenet_asceticism','tenet_bhakti', 'tenet_dharmic_pacifism','tenet_inner_journey', 'tenet_ritual_hospitality', 'tenet_adorcism','tenet_ancestor_worship', 'tenet_astrology', 'tenet_hedonistic','tenet_human_sacrifice', 'tenet_mystical_birthright', 'tenet_ritual_celebrations','tenet_sacred_childbirth','tenet_sanctity_of_nature', 'tenet_sky_burials', 'tenet_sun_worship','tenet_gruesome_festivals', 'tenet_exaltation_of_pain', 'tenet_natural_primitivism','tenet_pursuit_of_power', 'tenet_ritual_cannibalism', 'tenet_sacred_shadows','tenet_polyamory'])
-        tenet3 = random.choice(['tenet_aniconism', 'tenet_alexandrian_catechism', 'tenet_armed_pilgrimages','tenet_carnal_exaltation', 'tenet_communal_identity', 'tenet_communion','tenet_consolamentum', 'tenet_divine_marriage', 'tenet_gnosticism','tenet_mendicant_preachers', 'tenet_monasticism', 'tenet_pacifism','tenet_pentarchy', 'tenet_unrelenting_faith', 'tenet_vows_of_poverty','tenet_pastoral_isolation', 'tenet_adaptive','tenet_esotericism', 'tenet_legalism', 'tenet_literalism','tenet_reincarnation', 'tenet_religious_legal_pronouncements', 'tenet_struggle_submission','tenet_false_conversion_sanction', 'tenet_tax_nonbelievers', 'tenet_asceticism','tenet_bhakti', 'tenet_dharmic_pacifism','tenet_inner_journey', 'tenet_ritual_hospitality', 'tenet_adorcism','tenet_ancestor_worship', 'tenet_astrology', 'tenet_hedonistic','tenet_human_sacrifice', 'tenet_mystical_birthright', 'tenet_ritual_celebrations','tenet_sacred_childbirth','tenet_sanctity_of_nature', 'tenet_sky_burials', 'tenet_sun_worship','tenet_gruesome_festivals', 'tenet_exaltation_of_pain', 'tenet_natural_primitivism','tenet_pursuit_of_power', 'tenet_ritual_cannibalism', 'tenet_sacred_shadows','tenet_polyamory'])
+        tenet_options = (['tenet_aniconism', 'tenet_alexandrian_catechism', 'tenet_armed_pilgrimages','tenet_carnal_exaltation', 'tenet_communal_identity', 'tenet_communion','tenet_consolamentum', 'tenet_divine_marriage', 'tenet_gnosticism','tenet_mendicant_preachers', 'tenet_monasticism', 'tenet_pacifism','tenet_pentarchy', 'tenet_unrelenting_faith', 'tenet_vows_of_poverty','tenet_pastoral_isolation', 'tenet_adaptive','tenet_esotericism', 'tenet_legalism', 'tenet_literalism','tenet_reincarnation', 'tenet_religious_legal_pronouncements', 'tenet_struggle_submission','tenet_false_conversion_sanction', 'tenet_tax_nonbelievers', 'tenet_asceticism','tenet_bhakti', 'tenet_dharmic_pacifism','tenet_inner_journey', 'tenet_ritual_hospitality', 'tenet_adorcism','tenet_ancestor_worship', 'tenet_astrology', 'tenet_hedonistic','tenet_human_sacrifice', 'tenet_mystical_birthright', 'tenet_ritual_celebrations','tenet_sacred_childbirth','tenet_sanctity_of_nature', 'tenet_sky_burials', 'tenet_sun_worship','tenet_gruesome_festivals', 'tenet_exaltation_of_pain', 'tenet_natural_primitivism','tenet_pursuit_of_power', 'tenet_ritual_cannibalism', 'tenet_sacred_shadows','tenet_polyamory'])
 
+        tenet1 = random.choice(tenet_options)
+        tenet_options.remove(tenet1)
+
+        tenet2 = random.choice(tenet_options)
+        tenet_options.remove(tenet2)
+
+        tenet3 = random.choice(tenet_options)
 
         # Write the name to a text file with "00_" at the start
         file_name = f"00_{first_word}.txt"
@@ -105,3 +109,5 @@ for index, row in df.iterrows():
                        
                        
                        f" \n}}")
+
+    else: print(value)
