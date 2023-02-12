@@ -25,6 +25,9 @@ for i in range(1, source_sheet.max_row + 1):
     ws.cell(row=i, column=10, value=source_sheet.cell(row=i, column=6).value)
     ws.cell(row=i, column=11, value=source_sheet.cell(row=i, column=7).value)
     ws.cell(row=i, column=12, value=source_sheet.cell(row=i, column=7).value)
+    ws.cell(row=i, column=14, value=source_sheet.cell(row=i, column=9).value)
+
+
 
 # Save only the "Copied Data" sheet in the "provinceDef.xlsx" file
 wb_copied_data = openpyxl.Workbook()
