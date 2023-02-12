@@ -6,7 +6,7 @@ file_path = "combined_data.xlsx"
 df = pd.read_excel(file_path, sheet_name="religion")
 
 # Create a folder to store the text files
-folder_path = "religion_families"
+folder_path = "common/religion/religion_families"
 os.makedirs(folder_path, exist_ok=True)
 
 # Loop through the rows of the DataFrame
