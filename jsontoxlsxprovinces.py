@@ -70,12 +70,11 @@ for cell in culture:
 
 burgs_rows = []
 for cell in burgs:
-    if isinstance(cell, dict):
+    if isinstance(cell, dict) and cell:
         row = {
-            "i": cell["i"],
-            "cell": cell["cell"],
-            "name": cell["name"],
-
+            "i": cell.get("i", None),
+            "cell": cell.get("cell", None),
+            "name": cell.get("name", None),
         }
         burgs_rows.append(row)
 

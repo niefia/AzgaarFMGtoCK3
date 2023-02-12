@@ -35,6 +35,3 @@ for row in ws.iter_rows(values_only=True):
     ws_copied_data.append(row)
 
 wb_copied_data.save("provinceDef.xlsx")
-
-# Delete the original .xlsx file
-os.remove('updated_file.xlsx')
