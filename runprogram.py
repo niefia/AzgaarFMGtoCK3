@@ -34,6 +34,7 @@ def select_output_folder():
     subprocess.run(["python", "xlsoutput.py"], cwd=folder_path)
     subprocess.run(["python", "jsontoxlsxprovinces.py"], cwd=folder_path)
     subprocess.run(["python", "namecorrector.py"], cwd=folder_path)
+    subprocess.run(["python", "provdefcolumns.py"], cwd=folder_path)
 
 def store_scaling_factor(value):
     global scaling_factor

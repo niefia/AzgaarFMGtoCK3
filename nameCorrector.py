@@ -25,4 +25,4 @@ df1['Religion'] = df1['Religion'].map(provmapping)
 
 
 # Save the updated first DataFrame to a new Excel file
-df1.to_excel('updated_file2.xlsx', index=False)
+df1.to_excel('updated_file.xlsx', index=False)
