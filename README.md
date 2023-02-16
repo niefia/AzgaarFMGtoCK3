@@ -1,2 +1,3 @@
 # AzgaarFMGtoCK3
- Converts maps generated in Azgaar's Fantasy Map generator into Crusader Kings 3
+A Conversion tool to allowed for Random Maps in Crusader Kings 3, by converting from Azgaars Fantasy Map generator
+
