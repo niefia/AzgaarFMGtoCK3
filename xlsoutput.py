@@ -6,19 +6,21 @@ import random
 with open("output.geojson") as f:
     data = json.load(f)
 
-# Create an empty list to store the features
-features = []
+# Create empty lists to store the properties and geometries
+properties = []
+geometries = []
 
 # Loop through each feature in the GeoJSON file
 for feature in data["features"]:
-    # Get the properties of the feature
-    properties = feature["properties"]
+    # Get the properties and geometry of the feature
+    properties.append(feature["properties"])
+    geometries.append(feature["geometry"])
 
-    # Add the properties of the feature to the list
-    features.append(properties)
+# Convert the lists of properties and geometries to dataframes
+properties_df = pd.DataFrame(properties)
+geometries_df = pd.DataFrame(geometries)
 
-# Convert the list of features to a dataframe
-df = pd.DataFrame(features)
+df = pd.concat([properties_df, geometries_df], axis=1)
 
 # Rename the columns "state" to "Kingdom" and "province" to "County"
 df.rename(columns={'state': 'Kingdom', 'province': 'County', 'religion': 'Religion', 'culture': 'Culture'}, inplace=True)
@@ -37,7 +39,6 @@ names = ['Abingdon','Albrighton', 'Alcester', 'Almondbury', 'Altrincham', 'Amers
 ]
 df['Barony'] = [random.choice(names) + random.choice(names) for i in range(len(df))]
 
-
-
 # Save the dataframe to an XLS spreadsheet
-df.to_excel("provinceDef.xlsx", index=False)
+df.to_excel("cellsData.xlsx", index=False)
+# Merge the two dataframes on their index

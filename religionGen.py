@@ -44,6 +44,9 @@ for index, row in df.iterrows():
     name = row["name"]
     type = row["type"]
     first_word = name.split(" ")[0]
+    mainRelName = name.replace(" ", "_")
+    mainFamName = re.sub(r'\W+', '', name)
+    print(mainFamName)
     value = row["origin"]
     reform = ["unreformed_faith_doctrine"]
     paganroots = "no"
@@ -63,11 +66,6 @@ for index, row in df.iterrows():
 
     # Check if the value in column i is 0
     if value == 0:
-        print(id)
-        print(children[0])
-
-
-
         family = "rf_pagan"
         doc_hostile = random.choice(['pagan_hostility_doctrine', 'abrahamic_hostility_doctrine'])
         doc_hof = random.choice(['doctrine_no_head', 'doctrine_spiritual_head'])
@@ -111,7 +109,7 @@ for index, row in df.iterrows():
         outputs = []
         for child in children:
             if any(c.isalpha() for c in child):
-                child = child.replace(" ", "_")
+                child = re.sub(r'\W+', '', child)  # remove non-alphanumeric characters and spaces
                 output = f"{child} = {{ "
                 outputs.append(output)
 
@@ -119,10 +117,10 @@ for index, row in df.iterrows():
         full_text = "\n\n\t\t".join(["{}{}{}{}{}{}{}{}{}{}".format(output,"\n\t\tcolor = ",faithcolor, "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options),"\n\t\t}") for index, output in enumerate(outputs)])
 
         # Write the name to a text file with "00_" at the start
-        file_name = f"00_{first_word}.txt"
+        file_name = f"00_{mainFamName}.txt"
         file_path = os.path.join(folder_path, file_name)
         with open(file_path, "w", encoding="utf-8") as file:
-            file.write(f"{first_word}_religion = {{\n\tfamily = rf_{first_word}"
+            file.write(f"{mainFamName}_religion = {{\n\tfamily = rf_{mainFamName}"
                        f"\n\tdoctrine = {doc_hostile}"
                        f"\n\tpagan_roots = {paganroots}\n"
                        f"\n\tdoctrine = {doctrine_head_of_faith}"
@@ -152,7 +150,7 @@ for index, row in df.iterrows():
                        f"\n\t""}"      
                        f"\n\tholy_order_names ="" {}\n"
                        f"\n\tfaiths ="" {"
-                       f"\n\t\t{first_word} ="" {\n"
+                       f"\n\t\t{mainFamName} ="" {\n"
                        f"\n\t\tcolor = {faithcolor}\n"
                        f"\n\t\tdoctrine = {tenet1}\n"
                        f"\n\t\tdoctrine = {tenet2}\n"
