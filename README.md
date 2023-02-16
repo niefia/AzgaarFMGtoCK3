@@ -13,3 +13,9 @@ Refer to the project wiki for guidance
 
 Join the [Discord server](https://discord.gg/UrXnsbDRad) to help with development or just get updates
 
+
+
+
+![Image](https://cdn.discordapp.com/attachments/1074438094813671464/1075816311088762880/image.png)
+
+
