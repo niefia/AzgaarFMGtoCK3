@@ -1,10 +1,15 @@
 import pandas as pd
 import os
 import random
+import re
 
 # Load the Excel file into a pandas DataFrame
-file_path = "combined_data.xlsx"
-df = pd.read_excel(file_path, sheet_name="religion")
+#file_path = "combined_data.xlsx"
+#df = pd.read_excel(file_path, sheet_name="religion")
+
+# Load the Excel file into a pandas DataFrame
+file_path = "religionChildren_cName.xlsx"
+df = pd.read_excel(file_path)
 
 # Create a folder to store the text files
 folder_path = "common/religion/religions"
@@ -19,6 +24,7 @@ def color_generator():
 
 # Loop through the rows of the DataFrame
 for index, row in df.iterrows():
+    id = row["i"]
     name = row["name"]
     type = row["type"]
     first_word = name.split(" ")[0]
@@ -31,8 +37,37 @@ for index, row in df.iterrows():
     else:
         pagan_roots = "no"
 
+
+# Loop through the rows of the DataFrame
+for index, row in df.iterrows():
+    id = row["i"]
+    name = row["name"]
+    type = row["type"]
+    first_word = name.split(" ")[0]
+    value = row["origin"]
+    reform = ["unreformed_faith_doctrine"]
+    paganroots = "no"
+    children = row["cName"]
+    # Extract the values from the cName column as a list
+    cName_list = row['cName'][1:-1].split(", ")
+    cName_list = [re.sub('[\[\]\']', '', item) for item in cName_list] # Remove brackets and quotes from the strings
+
+    # Store the values in a list
+    children = cName_list
+
+    if type == "Folk":
+        pagan_roots = "yes"
+    else:
+        pagan_roots = "no"
+
+
     # Check if the value in column i is 0
     if value == 0:
+        print(id)
+        print(children[0])
+
+
+
         family = "rf_pagan"
         doc_hostile = random.choice(['pagan_hostility_doctrine', 'abrahamic_hostility_doctrine'])
         doc_hof = random.choice(['doctrine_no_head', 'doctrine_spiritual_head'])
@@ -61,16 +96,32 @@ for index, row in df.iterrows():
 
         tenet1 = random.choice(tenet_options)
         tenet_options.remove(tenet1)
-
         tenet2 = random.choice(tenet_options)
         tenet_options.remove(tenet2)
-
         tenet3 = random.choice(tenet_options)
+
+        f1tenet1 = random.choice(tenet_options)
+        tenet_options.remove(f1tenet1)
+        f1tenet2 = random.choice(tenet_options)
+        tenet_options.remove(f1tenet2)
+        f1tenet3 = random.choice(tenet_options)
+
+
+        # processes outputs of individual faith of one family
+        outputs = []
+        for child in children:
+            if any(c.isalpha() for c in child):
+                child = child.replace(" ", "_")
+                output = f"{child} = {{ "
+                outputs.append(output)
+
+        # outputs into text each faith
+        full_text = "\n\n\t\t".join(["{}{}{}{}{}{}{}{}{}{}".format(output,"\n\t\tcolor = ",faithcolor, "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options),"\n\t\t}") for index, output in enumerate(outputs)])
 
         # Write the name to a text file with "00_" at the start
         file_name = f"00_{first_word}.txt"
         file_path = os.path.join(folder_path, file_name)
-        with open(file_path, "w") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             file.write(f"{first_word}_religion = {{\n\tfamily = rf_{first_word}"
                        f"\n\tdoctrine = {doc_hostile}"
                        f"\n\tpagan_roots = {paganroots}\n"
@@ -106,8 +157,9 @@ for index, row in df.iterrows():
                        f"\n\t\tdoctrine = {tenet1}\n"
                        f"\n\t\tdoctrine = {tenet2}\n"
                        f"\n\t\tdoctrine = {tenet3}\n"
+
                                                                      "\t\t}\n"
-                                              "\t}\n"
+                       f"\n\t\t{full_text}\n"
                        
                        "}\n"
                        
@@ -115,6 +167,8 @@ for index, row in df.iterrows():
                        
                        
                        
+                       
+                       
                        f" \n}}")
 
-    else: print(value)
+
