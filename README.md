@@ -18,8 +18,6 @@ Join the [Discord server](https://discord.gg/UrXnsbDRad) to help with developmen
 
 ![Counties](https://cdn.discordapp.com/attachments/1074438094813671464/1075816311088762880/image.png)
 
-
 Progress tracked on [Trello](https://trello.com/b/yDIcIxDd/azgaar-ck3) board
 
-![Religions](https://cdn.discordapp.com/attachments/1072861760073244695/1075823261105016952/image.png)
 ![Kingdoms](https://cdn.discordapp.com/attachments/1074438094813671464/1075816240209215560/image.png)
