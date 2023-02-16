@@ -108,13 +108,25 @@ for index, row in df.iterrows():
         # processes outputs of individual faith of one family
         outputs = []
         for child in children:
+            faithcolor = color_generator()
             if any(c.isalpha() for c in child):
                 child = re.sub(r'\W+', '', child)  # remove non-alphanumeric characters and spaces
                 output = f"{child} = {{ "
                 outputs.append(output)
 
         # outputs into text each faith
-        full_text = "\n\n\t\t".join(["{}{}{}{}{}{}{}{}{}{}".format(output,"\n\t\tcolor = ",faithcolor, "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options),"\n\t\t}") for index, output in enumerate(outputs)])
+        #full_text = "\n\n\t\t".join(["{}{}{}{}{}{}{}{}{}{}".format(output,"\n\t\tcolor = ",faithcolor, "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options),"\n\t\t}") for index, output in enumerate(outputs)])
+        # outputs into text each faith
+        full_text = "\n\n\t\t".join([
+            "{}{}{}{}{}{}{}{}{}{}".format(
+                output, "\n\t\tcolor = ",
+                "{{ {:.2f} {:.2f} {:.2f} }}".format(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                "\n\t\tdoctrine = ", random.choice(tenet_options),
+                "\n\t\tdoctrine = ", random.choice(tenet_options),
+                "\n\t\tdoctrine = ", random.choice(tenet_options),
+                "\n\t\t}"
+            ) for output in outputs
+        ])
 
         # Write the name to a text file with "00_" at the start
         file_name = f"00_{mainFamName}.txt"
