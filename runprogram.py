@@ -88,7 +88,15 @@ def select_tile_number():
 
 def add_image():
     global image_file_path
-    image_file_path = "map_data/heightmap.png"
+    # Load the 16-bit depth grayscale image
+    img_16bit = cv2.imread('map_data/heightmap.png', cv2.IMREAD_GRAYSCALE)
+    # Normalize the image to the 0-255 range
+    cv2.normalize(img_16bit, img_16bit, 0, 255, cv2.NORM_MINMAX)
+    # Convert the 16-bit depth grayscale image to an 8-bit depth grayscale image
+    img_8bit = cv2.convertScaleAbs(img_16bit)
+    # Save the 8-bit depth grayscale image
+    cv2.imwrite('map_data/heightmapTemp.png', img_8bit)
+    image_file_path = "map_data/heightmapTemp.png"
     image = Image.open(image_file_path)
     width, height = int(image.width / 4), int(image.height / 4)
     image = image.resize((width, height),Image.BILINEAR )
@@ -143,8 +151,6 @@ def erodeSim():
 
     # Save the 8-bit depth grayscale image
     cv2.imwrite('map_data/heightmap8.png', img_8bit)
-
-
 
     global path_argv_sim
     path_argv_sim = sys.argv[0]
