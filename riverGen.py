@@ -4,7 +4,7 @@ import numpy as np
 import sys
 
 # set scaling factor
-scaling_factor = float(sys.argv[1])
+scaling_factor = 35
 
 # print the scaling factor
 print(scaling_factor)
@@ -169,12 +169,40 @@ def check_image(image_path):
                     else:
                         print("error at ({}, {})".format(x, y))
 
+#Use Landsea file as mask image as most Blue errors happen in sea, so can be masked anyway
+def mask_landsea(image_path, mask_path):
+    # Load the original image
+    img = Image.open(image_path)
+
+    # Load the mask image
+    mask = Image.open(mask_path)
+
+    # Convert the mask image to RGB
+    mask = mask.convert('RGB')
+
+    # Get the size of the mask
+    width, height = mask.size
+
+    # Iterate over all pixels in the mask image
+    for x in range(width):
+        print (x,"/8192")
+        for y in range(height):
+            # Get the color of the pixel
+            r, g, b = mask.getpixel((x, y))
+            # If the color is magenta (FF0080), set the corresponding pixel in the original image to transparent
+            if (r == 255) and (g == 0) and (b == 128):
+                img.putpixel((x, y), (255, 0, 128, 0))
+
+    # Save the modified image
+    img.save('map_data/masked_image.png', "PNG")
+
 #Checks for error of more than 2 touching Blue pixels, Does not correct yet
 def check_image_blue(image_path):
     # Load the image
     image = Image.open(image_path)
     # Get the pixel data
     pixels = image.load()
+    bpc = 0
     # Loop through the pixels
     for y in range(image.size[1]):
         for x in range(image.size[0]):
@@ -192,7 +220,8 @@ def check_image_blue(image_path):
                     count += 1
                 # Check if the green pixel has more than one adjacent blue pixel
                 if count > 2:
-                    print("Error Blue pixel with more than 2 adjacent at ({}, {})".format(x, y))
+                    print("Error Blue pixel with more than 2 adjacent at ({}, {})".format(x, y), "Blue Pixel Error:",(bpc))
+                    bpc += 1
 
 paint_land_sea("map_data/heightmap.png", "map_data/landsea.png")
 
@@ -200,4 +229,6 @@ draw_parent_rivers("map_data/landsea.png", "rivers.geojson", "map_data/rivermap.
 
 check_image("map_data/rivermap.png")
 
-check_image_blue("map_data/rivermap.png")
+mask_landsea("map_data/rivermap.png", "map_data/landsea.png")
+
+check_image_blue("map_data/masked_image.png")
