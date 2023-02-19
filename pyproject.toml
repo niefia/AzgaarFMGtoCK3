@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "azgaarfmgtock3"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "<3.12,>=3.8"
+pandas = "^1.5.3"
+pillow = "^9.4.0"
+numpy = "^1.24.2"
+matplotlib = "^3.7.0"
+opencv-python = "^4.7.0.68"
+customtkinter = "^5.1.2"
+scipy = "^1.10.0"
+split-image = "^2.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
