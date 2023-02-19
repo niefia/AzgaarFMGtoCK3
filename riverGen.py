@@ -4,7 +4,7 @@ import numpy as np
 import sys
 
 # set scaling factor
-scaling_factor = 35
+scaling_factor = float(sys.argv[1])
 
 # print the scaling factor
 print(scaling_factor)
