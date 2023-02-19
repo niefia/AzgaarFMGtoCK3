@@ -64,6 +64,8 @@ def run_generator():
     subprocess.run(["python", "relGenChil.py"], cwd=folder_path)
     subprocess.run(["python", "religionGen.py"], cwd=folder_path)
     subprocess.run(["python", "riverGen.py", str(scaling_factor)], cwd=folder_path)
+    subprocess.run(["python", "biomeWrite.py", str(scaling_factor)], cwd=folder_path)
+
     refresh_image()
 
 
@@ -88,6 +90,7 @@ def select_tile_number():
 
 def add_image():
     global image_file_path
+    #PIL appears to have an issue with 16-bit greyscale images, so requires conversion using CV2
     # Load the 16-bit depth grayscale image
     img_16bit = cv2.imread('map_data/heightmap.png', cv2.IMREAD_GRAYSCALE)
     # Normalize the image to the 0-255 range
