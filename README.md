@@ -13,6 +13,6 @@ Refer to the project wiki for guidance
 
 Join the [Discord server](https://discord.gg/UrXnsbDRad) to help with development or just get updates
 
-![Counties](./github/banner.png)
+![Counties](./.github/banner.png)
 
 Progress tracked on [Trello](https://trello.com/b/yDIcIxDd/azgaar-ck3) board
