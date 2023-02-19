@@ -2,13 +2,11 @@ import json
 import itertools
 from PIL import Image, ImageDraw
 import sys
-
+import os
 
 scaling_factor = float(sys.argv[1])
 
-
 print (scaling_factor)
-
 
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
@@ -30,4 +28,7 @@ def rasterize_geojson(geojson_file, output_file):
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save(output_file, "PNG")
 
+
+if not os.path.exists("map_data"):
+    os.makedirs("map_data")
 rasterize_geojson("output.geojson", "map_data/provinces.png")
