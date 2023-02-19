@@ -22,7 +22,7 @@ Progress tracked on [Trello](https://trello.com/b/yDIcIxDd/azgaar-ck3) board
 All development is recommended to use a virtualenv of some kind. 
 
 ### Windows
-Before installing packages, it is recommended setup is to install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html).
+Before installing packages, recommended setup is to install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html).
 
 Install packages by runnng `conda install -r requirements.txt`.
 
@@ -32,5 +32,4 @@ In addition, we have a Poetry file in project.toml that can be used. This [SO po
 First install Poetry package manager. [Install here](https://python-poetry.org/docs/)
 
 Then run `poetry install`.
-
 
