@@ -17,7 +17,7 @@ for value in unique_values:
 
 # Add a new column called 'color' and assign each row a color based on its 'nearest_town' value
 for i, value in enumerate(values):
-    cell = worksheet.cell(row=i+2, column=4)
+    cell = worksheet.cell(row=i+2, column=5)
     cell.value = color_dict[value]
     cell.fill = PatternFill(start_color=color_dict[value], end_color=color_dict[value], fill_type='solid')
 
