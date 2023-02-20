@@ -65,14 +65,13 @@ for cell in culture:
 # Create a list of dictionaries, where each dictionary represents a row of data for the burgs
 burgs_rows = []
 for cell in burgs:
-    if isinstance(cell, dict):
+    if isinstance(cell, dict) and cell:
         row = {
-            "i": cell["i"],
-            "cell": cell["cell"],
-            "x": cell["x"],
-            "y": cell["y"],
-            "name": cell["name"],
-
+            "i": cell.get("i", None),
+            "cell": cell.get("cell", None),
+            "x": cell.get("x", None),
+            "y": cell.get("y", None),
+            "name": cell.get("name", None),
         }
         burgs_rows.append(row)
 
