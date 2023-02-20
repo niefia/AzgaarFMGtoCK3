@@ -15,6 +15,9 @@ color_dict = {}
 for value in unique_values:
     color_dict[value] = '{:06x}'.format(random.randint(0, 0xFFFFFF))
 
+# Rename the column to 'color'
+worksheet.cell(row=1, column=5).value = "color"
+
 # Add a new column called 'color' and assign each row a color based on its 'nearest_town' value
 for i, value in enumerate(values):
     cell = worksheet.cell(row=i+2, column=5)

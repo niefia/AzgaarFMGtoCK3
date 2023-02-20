@@ -44,4 +44,5 @@ output_data["nearest_town"] = output_data["id"].apply(lambda x: id_to_town[start
 output_data["coordinates"] = output_data["id"].apply(lambda x: coordinates.get(x))
 
 # Save the output DataFrame to a new Excel file
+#output_data.sort_values(by="id", inplace=True)
 output_data.to_excel("BFSoutput.xlsx", index=False)
