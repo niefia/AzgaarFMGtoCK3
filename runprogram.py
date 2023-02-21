@@ -17,7 +17,7 @@ path_argv_sim = sys.argv[0]
 
 
 
-scaling_factor = 0
+scaling_factor = 50
 
 def select_geojson_file():
     global file_path
@@ -50,43 +50,68 @@ def select_output_folder():
     print("scaling_factor:", scaling_factor)
 
 def run_generator():
-    subprocess.run(["python", "colorrandom.py"], cwd=folder_path)
-    subprocess.run(["python", "provinces.py", str(scaling_factor)], cwd=folder_path)
-    subprocess.run(["python", "heightmap.py", str(scaling_factor)], cwd=folder_path)
-    subprocess.run(["python", "biomes.py", str(scaling_factor)], cwd=folder_path)
-    subprocess.run(["python", "jsonread.py"], cwd=folder_path)
-    subprocess.run(["python", "xlsoutput.py"], cwd=folder_path)
-    subprocess.run(["python", "jsontoxlsxprovinces.py"], cwd=folder_path)
-    subprocess.run(["python", "namecorrector.py"], cwd=folder_path)
-    subprocess.run(["python", "provdefcolumns.py"], cwd=folder_path)
-    subprocess.run(["python", "religionfamilygen.py"], cwd=folder_path)
-    subprocess.run(["python", "religionChildren.py"], cwd=folder_path)
-    subprocess.run(["python", "relGenChil.py"], cwd=folder_path)
-    subprocess.run(["python", "religionGen.py"], cwd=folder_path)
-    subprocess.run(["python", "riverGen.py", str(scaling_factor)], cwd=folder_path)
-    subprocess.run(["python", "biomeWrite.py", str(scaling_factor)], cwd=folder_path)
 
-    refresh_image()
-
-
-def store_scaling_factor(value):
     global scaling_factor
-    scaling_factor = int(value)
-
-def select_scaling_factor():
-    global scaling_factor
+    global provinceMethod
     scaling_factor = float(scaling_factor_entry.get())
+    PM = provinceMethod.get()
+
     print("Scaling factor:", scaling_factor)
+    print("Province Method:", PM)
+
+    if PM == "BFS":
+        subprocess.run(["python", "colorrandom.py"], cwd=folder_path)
+        subprocess.run(["python", "provinces.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "heightmap.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "biomes.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "jsonread.py"], cwd=folder_path)
+        subprocess.run(["python", "xlsoutput.py"], cwd=folder_path)
+        subprocess.run(["python", "jsontoxlsxprovinces.py"], cwd=folder_path)
+        subprocess.run(["python", "namecorrector.py"], cwd=folder_path)
+        subprocess.run(["python", "provdefcolumns.py"], cwd=folder_path)
+        subprocess.run(["python", "religionfamilygen.py"], cwd=folder_path)
+        subprocess.run(["python", "religionChildren.py"], cwd=folder_path)
+        subprocess.run(["python", "relGenChil.py"], cwd=folder_path)
+        subprocess.run(["python", "religionGen.py"], cwd=folder_path)
+        subprocess.run(["python", "riverGen.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "biomeWrite.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "baronyBFS.py"], cwd=folder_path)
+        subprocess.run(["python", "colorRandomBFS.py"], cwd=folder_path)
+        subprocess.run(["python", "BFSProvincemap.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "BFSbaronyXLS.py"], cwd=folder_path)
+        subprocess.run(["python", "religionGen.py"], cwd=folder_path)
+    elif PM == "Cells":
+        subprocess.run(["python", "colorrandom.py"], cwd=folder_path)
+        subprocess.run(["python", "provinces.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "heightmap.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "biomes.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "jsonread.py"], cwd=folder_path)
+        subprocess.run(["python", "xlsoutput.py"], cwd=folder_path)
+        subprocess.run(["python", "jsontoxlsxprovinces.py"], cwd=folder_path)
+        subprocess.run(["python", "namecorrector.py"], cwd=folder_path)
+        subprocess.run(["python", "provdefcolumns.py"], cwd=folder_path)
+        subprocess.run(["python", "religionfamilygen.py"], cwd=folder_path)
+        subprocess.run(["python", "religionChildren.py"], cwd=folder_path)
+        subprocess.run(["python", "relGenChil.py"], cwd=folder_path)
+        subprocess.run(["python", "religionGen.py"], cwd=folder_path)
+        subprocess.run(["python", "riverGen.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "biomeWrite.py", str(scaling_factor)], cwd=folder_path)
+        subprocess.run(["python", "religionGen.py"], cwd=folder_path)
 
 
-def store_tile_number(value):
-    global scaling_factor
-    scaling_factor = int(value)
+#def store_scaling_factor(value):
+    #global scaling_factor
+    #scaling_factor = int(value)
 
-def select_tile_number():
-    global scaling_factor
-    scaling_factor = float(tile_number_entry.get())
-    print("Tile Number:", scaling_factor)
+#def select_scaling_factor():
+    #global scaling_factor
+    #scaling_factor = float(scaling_factor_entry.get())
+    #print("Scaling factor:", scaling_factor)
+
+
+#def store_tile_number(value):
+    #global scaling_factor
+    #scaling_factor = int(value)
 
 def add_image():
     global image_file_path
@@ -172,18 +197,19 @@ frame.pack(side="left", fill="y")
 
 canvas = tk.Canvas(root, width=1366, height=1024)
 canvas.pack(pady=15)
+provinceMethod = customtkinter.StringVar(value="BFS")  # set initial value
 
     # Create label for scaling factor
 scaling_factor_label = customtkinter.CTkLabel(frame, text="Enter scaling factor:")
 scaling_factor_label.pack()
 
-# Create entry for scaling factor
-scaling_factor_entry = customtkinter.CTkEntry(frame)
-scaling_factor_entry.pack()
 
-# Create button to select scaling factor
-scaling_factor_button = customtkinter.CTkButton(frame,text="Enter scaling factor", command=select_scaling_factor)
-scaling_factor_button.pack(padx=20, pady=10)
+global scaling_factor_entry
+scaling_factor_entry = customtkinter.CTkEntry(frame)
+scaling_factor_entry.insert(0,"50")
+scaling_factor_entry.pack()
+scaling_factor = scaling_factor_entry.get()
+
 
 select_geojson_file_button = customtkinter.CTkButton(frame, text="Select Cells geojson file", command=select_geojson_file)
 select_geojson_file_button.pack(padx=20, pady=10)
@@ -201,6 +227,23 @@ select_output_folder_button.pack(padx=20, pady=10)
 
 generate_button = customtkinter.CTkButton(frame,text="Generate maps", command=run_generator)
 generate_button.pack(padx=20, pady=10)
+
+
+
+scaling_factor_label = customtkinter.CTkLabel(frame, text="Province Generation Method:")
+scaling_factor_label.pack()
+
+
+def combobox_callback(choice):
+    print("combobox dropdown clicked:", choice)
+
+combobox = customtkinter.CTkComboBox(master=frame,
+                                     values=["BFS", "Cells"],
+                                     command=combobox_callback,
+                                     variable=provinceMethod)
+combobox.pack(padx=20, pady=10)
+
+
 
 label = customtkinter.CTkLabel(frame, text="Output folder must be same folder as the .exe and .py files")
 label.pack(padx=20, pady=10)
@@ -232,9 +275,6 @@ global e_iter
 e_iter = customtkinter.CTkEntry(frame)
 e_iter.insert(0,"128")
 e_iter.pack()
-
-
-
 
 
 generate_button = customtkinter.CTkButton(frame,text="Run Erosion", command=erodeSim)

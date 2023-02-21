@@ -1,6 +1,11 @@
 import ast
 import pandas as pd
 from PIL import Image, ImageDraw
+import sys
+
+scaling_factor = float(sys.argv[1])
+#scaling_factor = float(38)
+print (scaling_factor)
 
 # read the Excel file
 df = pd.read_excel('BFSoutput.xlsx')
@@ -26,13 +31,20 @@ width, height = 8192, 4096
 img = Image.new('RGBA', (width, height), (255, 255, 255, 0))
 draw = ImageDraw.Draw(img)
 
-# draw each polygon
+# draw each polygon with scaling factor applied
 for coord, color in zip(coords, colors):
-    # convert coordinates to pixel values
-    coord_px = [(int((x + 180) * (width / 360)), int((y + 90) * (height / 180))) for x, y in coord]
+
+    # calculate the center pixel
+    center_px = (width / 2, height / 2)
+
+    # calculate the pixel value for each coordinate, with scaling factor applied and centered at the center_px
+    coord_px = [(int(center_px[0] + (x * scaling_factor)  ),
+                 int(center_px[1] - (y * scaling_factor)  )) for x, y in coord]
+
     # draw polygon
     rgbcolor =hex_to_rgb(color)
     draw.polygon(coord_px, fill=rgbcolor, outline=None)
 
+img.show()
 # save image
-img.save('output.png')
+img.save('map_data/provinces.png')

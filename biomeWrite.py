@@ -48,7 +48,7 @@ for row, (name, id) in enumerate(biomes, start=1):
 wb.save('biomes.xlsx')
 
 # Rename the biome image files to match the masks in the Excel worksheet
-for filename in os.listdir('terrain'):
+for filename in os.listdir('gfx/map/terrain'):
     if filename.endswith('.png'):
         # Extract the number part of the filename (before the extension)
         number = filename[6:-4]
@@ -57,6 +57,6 @@ for filename in os.listdir('terrain'):
         for row in ws.iter_rows(min_row=2, max_col=3):
             if row[1].value == int(number)+1:
                 # Rename the file to match the mask in column 3
-                os.rename(os.path.join('terrain', filename), os.path.join('terrain', f"{row[2].value}.png"))
+                os.rename(os.path.join('gfx/map/terrain', filename), os.path.join('gfx/map/terrain', f"{row[2].value}.png"))
                 break
 

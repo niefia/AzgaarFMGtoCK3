@@ -37,6 +37,6 @@ if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 
-rasterize_geojson("output.geojson", "output_path")
+rasterize_geojson("output.geojson", output_path)
 
 
