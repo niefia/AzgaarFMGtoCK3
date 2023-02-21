@@ -2,6 +2,7 @@ import json
 import itertools
 from PIL import Image, ImageDraw
 import sys
+import os
 
 scaling_factor = float(sys.argv[1])
 
