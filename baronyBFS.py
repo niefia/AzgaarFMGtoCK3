@@ -3,7 +3,8 @@ from queue import Queue
 
 # Read data from Excel files
 combined_data = pd.read_excel("combined_data.xlsx", sheet_name="burgs")
-cells_data = pd.read_excel("cellsData.xlsx", usecols=["id", "neighbors", "coordinates", "type"])
+cells_data = pd.read_excel("cellsData.xlsx", usecols=["id", "neighbors", "coordinates", "type", "County"])
+
 cells_data['neighbors'] = cells_data['neighbors'].apply(lambda x: [int(n) for n in x.strip('[]').split(',')])
 
 # Create a dictionary to map cell IDs to town names
@@ -30,7 +31,7 @@ while not frontier.empty():
     current = frontier.get()
     if current in cells_data["id"].tolist() and cells_data.loc[cells_data["id"] == current, "type"].tolist()[0] != "ocean":
         for next_cell in cells_data.loc[cells_data["id"] == current, "neighbors"].tolist()[0]:
-            if next_cell not in cost_so_far and cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[0] != "ocean":
+            if next_cell not in cost_so_far and cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[0] != "ocean" and cells_data.loc[cells_data["id"] == next_cell, "County"].tolist()[0] == cells_data.loc[cells_data["id"] == current, "County"].tolist()[0]:
                 cost_so_far[next_cell] = cost_so_far[current] + 1
                 started_at[next_cell] = started_at[current]
                 coordinates[next_cell] = cells_data.loc[cells_data["id"] == next_cell, "coordinates"].tolist()[0]
