@@ -30,7 +30,7 @@ def rasterize_geojson(geojson_file, output_dir):
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
         img.save(f"{output_dir}/biome_{biome}.png", "PNG")
 
-output_path = "gfx/map/terrain"
+output_path = "gfx/map/terrain/"
 output_folder = os.path.dirname(output_path)
 
 if not os.path.exists(output_folder):
