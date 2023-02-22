@@ -1,5 +1,6 @@
 import pandas as pd
 from openpyxl import Workbook
+import re
 
 #Rearrange and extract BFS Data into new provinceDef file (Cell ID is not used in game but used later to get parent cell data on province,state, religion culture etc)
 def extractBFS():
@@ -58,6 +59,9 @@ def ProvData():
     # Define the columns to transfer
     columns_to_transfer = ['Cell ID', 'population', 'Kingdom', 'County', 'Culture', 'Religion']
 
+    # Apply re.sub() function to the 'Religion' column
+    merged['Religion'] = merged['Religion'].apply(lambda x: re.sub(r'\W+', '', x) if isinstance(x, str) else x)
+
     # Transfer the columns from updated_file to province_def for the matching rows
     province_def.loc[merged.index, columns_to_transfer] = merged[columns_to_transfer]
 
@@ -66,15 +70,52 @@ def ProvData():
 
 
 def cOrder():
+    import openpyxl
 
-    # Load the Excel file into a Pandas DataFrame
-    df = pd.read_excel('provinceDef.xlsx')
+    # Open the Excel file
+    wb = openpyxl.load_workbook('provinceDef.xlsx')
 
-    # Delete the values in column 7
-    df.drop(df.columns[6], axis=1, inplace=False)
+    # Select the active worksheet
+    ws = wb.active
 
-    # Write the modified DataFrame back to an Excel file
-    df.to_excel('provinceDef.xlsx', index=False)
+    # Get the column index of the "Religion", "Culture", "County", and "Kingdom" columns
+    religion_col_idx = 0
+    culture_col_idx = 0
+    county_col_idx = 0
+    kingdom_col_idx = 0
+    for cell in ws[1]:
+        if cell.value == "Religion":
+            religion_col_idx = cell.column
+        elif cell.value == "Culture":
+            culture_col_idx = cell.column
+        elif cell.value == "County":
+            county_col_idx = cell.column
+        elif cell.value == "Kingdom":
+            kingdom_col_idx = cell.column
+
+    # Move the "Religion", "Culture", "County", and "Kingdom" columns to columns M, N, O, and P, respectively
+    if religion_col_idx > 0:
+        ws.move_range(
+            f"{openpyxl.utils.get_column_letter(religion_col_idx)}1:{openpyxl.utils.get_column_letter(religion_col_idx)}{ws.max_row}",
+            cols=2)
+    if culture_col_idx > 0:
+        ws.move_range(
+            f"{openpyxl.utils.get_column_letter(culture_col_idx)}1:{openpyxl.utils.get_column_letter(culture_col_idx)}{ws.max_row}",
+            cols=2)
+    if county_col_idx > 0:
+        ws.move_range(
+            f"{openpyxl.utils.get_column_letter(county_col_idx)}1:{openpyxl.utils.get_column_letter(county_col_idx)}{ws.max_row}",
+            cols=2)
+    if kingdom_col_idx > 0:
+        ws.move_range(
+            f"{openpyxl.utils.get_column_letter(kingdom_col_idx)}1:{openpyxl.utils.get_column_letter(kingdom_col_idx)}{ws.max_row}",
+            cols=1)
+
+    # Save the updated Excel file
+    wb.save('provinceDef.xlsx')
+
+def cOrder2():
+
 
 
 extractBFS()
