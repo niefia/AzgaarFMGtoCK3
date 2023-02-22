@@ -1,5 +1,6 @@
 import pandas as pd
 from openpyxl import Workbook
+import openpyxl
 import re
 
 #Rearrange and extract BFS Data into new provinceDef file (Cell ID is not used in game but used later to get parent cell data on province,state, religion culture etc)
@@ -68,7 +69,7 @@ def ProvData():
     # Save the modified province_def dataframe to a new Excel file
     province_def.to_excel('provinceDef.xlsx', index=False)
 
-
+#Reorder Columns to provinceDef order
 def cOrder():
     import openpyxl
 
@@ -114,11 +115,36 @@ def cOrder():
     # Save the updated Excel file
     wb.save('provinceDef.xlsx')
 
+#Copy Kingdoms to Empire, Counties to Duchies & Delete Cell ID and population
 def cOrder2():
 
+        # Load the workbook
+    workbook = openpyxl.load_workbook('provinceDef.xlsx')
+
+    # Select the active worksheet
+    worksheet = workbook.active
+
+    # Loop through each row
+    for i in range(1, worksheet.max_row + 1):
+        # Copy column 10 to column 9
+        worksheet.cell(row=i, column=9).value = worksheet.cell(row=i, column=10).value
+
+        # Delete the values in columns 6 and 7
+        worksheet.cell(row=i, column=6).value = None
+        worksheet.cell(row=i, column=7).value = None
+
+        # Copy column 12 to column 11
+        worksheet.cell(row=i, column=11).value = worksheet.cell(row=i, column=12).value
+
+    # Save the changes to the workbook
+    workbook.save('provinceDef.xlsx')
+
+    # Save the changes to the workbook
+    workbook.save('provinceDef.xlsx')
 
 
 extractBFS()
 BaronyId()
 ProvData()
 cOrder()
+cOrder2()
