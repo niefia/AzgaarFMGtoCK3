@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import random
 
 # Load the JSON data from the file
 with open("noemoji.json") as file:
@@ -68,17 +69,35 @@ for cell in culture:
         }
         cultures_rows.append(row)
 
+suffixes = ["castle", "town", "field", "pool"]
+names = set()
 burgs_rows = []
+
+
+
+suffixes = ["castle", "town", "field", "pool","by","toft","worth","llyn","ay","y","ey","bost","caster","chester","cester","leigh","ley","borough","bury","burgh","wick"]
+names = set()
+burgs_rows = []
+
 for cell in burgs:
     if isinstance(cell, dict) and cell:
+        name = cell.get("name", None)
+        suffix = ""
+        while name + suffix in names:
+            suffix = f"{random.choice(suffixes)}"
+            if len(names) >= 4 * len(suffixes) * len(burgs):
+                print("ERROR: Could not generate unique names for all burgs.")
+                exit()
+        names.add(name + suffix)
         row = {
             "i": cell.get("i", None),
             "cell": cell.get("cell", None),
-            "name": cell.get("name", None),
+            "name": name + suffix,
         }
         burgs_rows.append(row)
 
 
+burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
 # Create data frames from the lists of dictionaries
 states_df = pd.DataFrame(states_rows, columns=["i", "name"])

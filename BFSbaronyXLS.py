@@ -129,8 +129,7 @@ def cOrder2():
         # Copy column 10 to column 9
         worksheet.cell(row=i, column=9).value = worksheet.cell(row=i, column=10).value
 
-        # Delete the values in columns 6 and 7
-        worksheet.cell(row=i, column=6).value = None
+        # Delete the values in columns 7
         worksheet.cell(row=i, column=7).value = None
 
         # Copy column 12 to column 11
@@ -139,12 +138,10 @@ def cOrder2():
     # Save the changes to the workbook
     workbook.save('provinceDef.xlsx')
 
-    # Save the changes to the workbook
-    workbook.save('provinceDef.xlsx')
 
 
 extractBFS()
 BaronyId()
 ProvData()
 cOrder()
-cOrder2()
+#cOrder2()
