@@ -6,7 +6,7 @@ authors = []
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "<3.12,>=3.8"
+python = "<3.12,>=3.8,!=3.10.0"
 pandas = "^1.5.3"
 pillow = "^9.4.0"
 numpy = "^1.24.2"
@@ -16,6 +16,13 @@ customtkinter = "^5.1.2"
 scipy = "^1.10.0"
 split-image = "^2.0.1"
 
+
+[tool.poetry.scripts]
+start_app = 'runprogram'
+
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^5.8.0"
 
 [build-system]
 requires = ["poetry-core"]
