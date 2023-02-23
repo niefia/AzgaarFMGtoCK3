@@ -1,0 +1,41 @@
+name: 'Build Releases'
+
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Install Deps
+        run: poetry install
+      - name: Retrieve CustomTkinterPath
+        run: |
+          echo "CTK_PATH=$(poetry run pip show customtkinter | grep Location | sed -n 's/Location: //p')/customtkinter:customtkinter/" >> $GITHUB_OUTPUT
+        id: version
+      - name: build
+        run: poetry run pyinstaller --windowed --onefile runprogram.py --add-data ${{ steps.version.outputs.CTK_PATH }} --name Ck3RandomMapMaker
