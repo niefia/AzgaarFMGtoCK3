@@ -78,7 +78,7 @@ for index, row in df.iterrows():
         doctrine_deviancy = random.choice(['doctrine_deviancy_crime', 'doctrine_deviancy_shunned', 'doctrine_deviancy_accepted'])
         doctrine_adultery_men = random.choice(['doctrine_adultery_men_crime', 'doctrine_adultery_men_shunned', 'doctrine_adultery_men_accepted'])
         doctrine_adultery_women = random.choice(['doctrine_adultery_women_crime', 'doctrine_adultery_women_shunned', 'doctrine_adultery_women_accepted'])
-        doctrine_kinslaying = random.choice(['doctrine_kinslaying_any_dynasty_member_crime', 'doctrine_kinslaying_extended_family_crime', 'doctrine_kinslaying_shunned', 'doctrine_kinslaying_close_kin_crime', 'doctrine_kinslaying_accepted,  '])
+        doctrine_kinslaying = random.choice(['doctrine_kinslaying_any_dynasty_member_crime', 'doctrine_kinslaying_extended_family_crime', 'doctrine_kinslaying_shunned', 'doctrine_kinslaying_close_kin_crime', 'doctrine_kinslaying_accepted'])
         doctrine_witchcraft = random.choice(['doctrine_witchcraft_crime', 'doctrine_witchcraft_shunned', 'doctrine_witchcraft_accepted'])
         doctrine_gender = random.choice(['doctrine_gender_male_dominated', 'doctrine_gender_equal', 'doctrine_gender_female_dominated'])
         doctrine_consanguinity = random.choice(['doctrine_consanguinity_restricted', 'doctrine_consanguinity_cousins', 'doctrine_consanguinity_aunt_nephew_and_uncle_niece', 'doctrine_consanguinity_unrestricted'])
@@ -91,6 +91,7 @@ for index, row in df.iterrows():
         doctrine_clerical_succession = random.choice(['doctrine_clerical_succession_temporal_appointment', 'doctrine_clerical_succession_spiritual_appointment', 'doctrine_clerical_succession_temporal_fixed_appointment','doctrine_clerical_succession_spiritual_fixed_appointment'])
         faithcolor = color_generator()
         tenet_options = (['tenet_aniconism', 'tenet_alexandrian_catechism', 'tenet_armed_pilgrimages','tenet_carnal_exaltation', 'tenet_communal_identity', 'tenet_communion','tenet_consolamentum', 'tenet_divine_marriage', 'tenet_gnosticism','tenet_mendicant_preachers', 'tenet_monasticism', 'tenet_pacifism','tenet_pentarchy', 'tenet_unrelenting_faith', 'tenet_vows_of_poverty','tenet_pastoral_isolation', 'tenet_adaptive','tenet_esotericism', 'tenet_legalism', 'tenet_literalism','tenet_reincarnation', 'tenet_religious_legal_pronouncements', 'tenet_struggle_submission','tenet_false_conversion_sanction', 'tenet_tax_nonbelievers', 'tenet_asceticism','tenet_bhakti', 'tenet_dharmic_pacifism','tenet_inner_journey', 'tenet_ritual_hospitality', 'tenet_adorcism','tenet_ancestor_worship', 'tenet_astrology', 'tenet_hedonistic','tenet_human_sacrifice', 'tenet_mystical_birthright', 'tenet_ritual_celebrations','tenet_sacred_childbirth','tenet_sanctity_of_nature', 'tenet_sky_burials', 'tenet_sun_worship','tenet_gruesome_festivals', 'tenet_exaltation_of_pain', 'tenet_natural_primitivism','tenet_pursuit_of_power', 'tenet_ritual_cannibalism', 'tenet_sacred_shadows','tenet_polyamory'])
+        icon_options = (["antler","celtic_01","celtic_02","celtic_03","celtic_04","oak_01","oak_02","viking_01","viking_02","viking_03","viking_04","viking_05","viking_06"])
 
         tenet1 = random.choice(tenet_options)
         tenet_options.remove(tenet1)
@@ -118,20 +119,23 @@ for index, row in df.iterrows():
         #full_text = "\n\n\t\t".join(["{}{}{}{}{}{}{}{}{}{}".format(output,"\n\t\tcolor = ",faithcolor, "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options), "\n\t\tdoctrine = ", random.choice(tenet_options),"\n\t\t}") for index, output in enumerate(outputs)])
         # outputs into text each faith
         full_text = "\n\n\t\t".join([
-            "{}{}{}{}{}{}{}{}{}{}".format(
+            #If adding more Variables below, make sure to add {}
+            "{}{}{}{}{}{}{}{}{}{}{}{}".format(
                 output, "\n\t\tcolor = ",
                 "{{ {:.2f} {:.2f} {:.2f} }}".format(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                "\n\t\ticon = ", random.choice(icon_options),
                 "\n\t\tdoctrine = ", random.choice(tenet_options),
                 "\n\t\tdoctrine = ", random.choice(tenet_options),
                 "\n\t\tdoctrine = ", random.choice(tenet_options),
                 "\n\t\t}"
+
             ) for output in outputs
         ])
 
         # Write the name to a text file with "00_" at the start
         file_name = f"00_{mainFamName}.txt"
         file_path = os.path.join(folder_path, file_name)
-        with open(file_path, "w", encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8-sig") as file:
             file.write(f"{mainFamName}_religion = {{\n\tfamily = rf_{mainFamName}"
                        f"\n\tdoctrine = {doc_hostile}"
                        f"\n\tpagan_roots = {paganroots}\n"
@@ -164,6 +168,7 @@ for index, row in df.iterrows():
                        f"\n\tfaiths ="" {"
                        f"\n\t\t{mainFamName} ="" {\n"
                        f"\n\t\tcolor = {faithcolor}\n"
+                       f"\n\t\ticon = {random.choice(icon_options)}\n"
                        f"\n\t\tdoctrine = {tenet1}\n"
                        f"\n\t\tdoctrine = {tenet2}\n"
                        f"\n\t\tdoctrine = {tenet3}\n"
