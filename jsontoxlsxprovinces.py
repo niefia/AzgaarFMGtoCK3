@@ -23,15 +23,27 @@ for cell in states:
     states_rows.append(row)
 
 # Create a list of dictionaries, where each dictionary represents a row of data for the provinces
+
 provinces_rows = []
+suffixes = ["castle", "town", "field", "pool","by","toft","worth","llyn","ay","y","ey","bost","caster","chester","cester","leigh","ley","borough","bury","burgh","wick"]
+names_set = set()  # to keep track of unique province names
+
 for cell in provinces:
     if isinstance(cell, dict):
+        name = cell["name"]
+        base_name = name
+        suffix_idx = 1
+        while name in names_set:  # check if name is already in set
+            name = base_name + suffixes[suffix_idx - 1]  # add a suffix to the name
+            suffix_idx += 1
+        names_set.add(name)  # add the unique name to the set
+
         row = {
             "i": cell["i"],
             "state": cell["state"],
             "center": cell["center"],
             "burg": cell["burg"],
-            "name": cell["name"],
+            "name": name,
             "formName": cell["formName"],
             "fullName": cell["fullName"],
             "color": cell["color"],
