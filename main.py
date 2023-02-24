@@ -5,6 +5,7 @@ import BFS
 import hextorgb
 import os
 
+
 print("Scaling Factor Determines map size, Try 50 to start with")
 scaling_factor = float(input("Enter Scaling Factor: "))
 

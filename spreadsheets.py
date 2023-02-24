@@ -53,6 +53,8 @@ def json_to_sheet(input_file_path, output_file_path):
     # Create a list of dictionaries, where each dictionary represents a row of data for the states
     states_rows = []
     for cell in states:
+        if "name" not in cell or "i" not in cell:
+            continue  # skip this row if name or i is missing
         row = {
             "i": cell["i"],
             "name": cell["name"],
@@ -106,17 +108,15 @@ def json_to_sheet(input_file_path, output_file_path):
             }
             religions_rows.append(row)
 
-
-
     cultures_rows = []
     for cell in culture:
-        if isinstance(cell, dict):
-            row = {
-                "i": cell["i"],
-                "name": cell["name"],
-
-            }
-            cultures_rows.append(row)
+        if not isinstance(cell, dict) or "name" not in cell or "i" not in cell:
+            continue  # skip this row if it's not a dictionary or name or i is missing
+        row = {
+            "i": cell["i"],
+            "name": cell["name"],
+        }
+        cultures_rows.append(row)
 
     suffixes = ["castle", "town", "field", "pool"]
     names = set()
