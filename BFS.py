@@ -248,7 +248,24 @@ def cOrder(file_path):
     wb.save(file_path)
 
 
+def finalorder(excel_file_path):
+    # Load Excel file into a pandas DataFrame
+    df = pd.read_excel(excel_file_path)
 
+    # Check if columns G and H exist by number
+    if len(df.columns) > 7:
+        # Delete values in columns G and H
+        df.iloc[:, [6, 7]] = ""
+
+    # Check if columns J and L exist by number
+    if len(df.columns) > 9:
+        # Copy values from Column J to Column I
+        df.iloc[:, 8] = df.iloc[:, 9]
+        # Copy values from Column L to Column K
+        df.iloc[:, 10] = df.iloc[:, 11]
+
+    # Save modified DataFrame back to Excel file
+    df.to_excel(excel_file_path, index=False)
 
 
 

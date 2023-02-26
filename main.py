@@ -64,6 +64,7 @@ def runGen():
                                         os.path.join(output_dir, "noemoji.json"))
     print("Emoji data removed from json")
 
+
     # Assign colors to Baronies in GeoJSON file
     spreadsheets.colorRandom(os.path.join(modpath, "input.geojson"), os.path.join(output_dir, "output.geojson"))
     print("Colors Assigned to Baronies for Cells method")
@@ -104,6 +105,15 @@ def runGen():
                       scaling_factor)
     print("Generated Biomes")
 
+    #Rename biome files to CK3 texture names using the json data
+    modFiles.biomeWrite(os.path.join(output_dir, 'noemoji.json'),
+               os.path.join(output_dir, 'biomes.xlsx'),
+               os.path.join(output_dir, 'gfx/map/terrain'))
+
+    input_zip_file = os.path.join(modpath, "tcs.zip")
+    # Call the extract_zip_file function
+    modFiles.extract_zip_file(input_zip_file, output_dir)
+
 
 
     #Runs Religion Generator
@@ -141,5 +151,6 @@ def runGen():
     BFS.BaronyId(os.path.join(output_dir, "combined_data.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
     BFS.ProvData(os.path.join(output_dir,"updated_file.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
     BFS.cOrder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
+    BFS.finalorder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
 
 runGen()
