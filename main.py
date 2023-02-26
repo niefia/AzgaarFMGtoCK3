@@ -28,6 +28,12 @@ def runGen():
     modname = input("Enter your desired mod name: ")
     print("")
 
+    mapfilldir = input("Enter the Map Filler Directory : ")
+    print("")
+
+    installdir = input("Enter the CK3 install Directory : ")
+    # print("")
+
     output_dir = os.path.join(modpath,modname)
 
     # Create output directory if it doesn't exist
@@ -152,5 +158,20 @@ def runGen():
     BFS.ProvData(os.path.join(output_dir,"updated_file.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
     BFS.cOrder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
     BFS.finalorder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
+    BFS.convert_xlsx_to_xls(os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xls"))
+
+    # Get output directory path from user input
+    print("Automatic Map Filler Running")
+
+    config_file_path = os.path.join(mapfilldir, "config.properties")
+    print(config_file_path)
+    moddir = output_dir
+
+    modFiles.modify_config(moddir, installdir, config_file_path)
+
+    jar_path = os.path.join(mapfilldir, "CK3Tools.jar")
+    cwd = mapfilldir
+    modFiles.run_jar(jar_path, cwd)
+
 
 runGen()

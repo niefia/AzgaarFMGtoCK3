@@ -2,7 +2,7 @@ import os
 import json
 import openpyxl
 import zipfile
-
+import subprocess
 
 def modFile(modname, output_dir, modpath):
     escaped_output_dir = output_dir.replace("\\", "/")
@@ -114,3 +114,37 @@ def extract_zip_file(input_zip_file, output_folder):
                 print(f"Skipping {member.filename} (already exists in output folder)")
             else:
                 zip_ref.extract(member, output_folder)
+
+
+def modify_config(moddir, installdir, config_file_path):
+    # Replace single backslashes with double backslashes in the paths
+    moddir = moddir.replace("\\", "\\\\")
+    installdir = installdir.replace("\\", "\\\\")
+
+    with open(config_file_path, "r") as f:
+        lines = f.readlines()
+
+    for i, line in enumerate(lines):
+        if line.startswith("moddirectory="):
+            lines[i] = f"moddirectory={moddir}\n"
+        elif line.startswith("installdir="):
+            lines[i] = f"installdir={installdir}\n"
+        elif line.startswith("removeVanilla=true"):
+            lines[i] = "removeVanilla=false\n"
+
+    with open(config_file_path, "w") as f:
+        f.writelines(lines)
+
+
+def run_jar(jar_path, cwd):
+
+    print("Running Map Filler jar")
+    # Set the current working directory to the directory where the script is located
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    # Command to run the jar file with the appropriate environment
+    cmd = ["java", "-jar", jar_path]
+
+    # Run the jar file in a subprocess with the appropriate environment and working directory
+    subprocess.run(cmd, cwd=cwd)
+

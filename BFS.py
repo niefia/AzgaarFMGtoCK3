@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 from openpyxl import Workbook
 import openpyxl
 import re
-
+import xlwt
 
 
 def bfs_distance(combined_data_file, cells_data_file, output_file):
@@ -268,6 +268,24 @@ def finalorder(excel_file_path):
     df.to_excel(excel_file_path, index=False)
 
 
+def convert_xlsx_to_xls(excel_file_path, output_file):
+    # Open the input .xlsx file
+    wb = openpyxl.load_workbook(excel_file_path)
+
+    # Create a new .xls workbook
+    xls_wb = xlwt.Workbook()
+
+    # Copy each worksheet from the .xlsx workbook to the new .xls workbook
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        xls_sheet = xls_wb.add_sheet(sheet_name)
+
+        for row_index, row in enumerate(sheet.iter_rows()):
+            for col_index, cell in enumerate(row):
+                xls_sheet.write(row_index, col_index, cell.value)
+
+    # Save the new .xls file
+    xls_wb.save(output_file)
 
 
 #provinceMapBFS('path/to/BFSoutput.xlsx', 38,'map_data/provinces.png')
@@ -281,3 +299,4 @@ def finalorder(excel_file_path):
 #cOrder("provinceDef.xlsx")
 
 
+#convert_xlsx_to_xls('provinceDef.xlsx', 'provinceDef.xls')
