@@ -6,7 +6,9 @@ import BFS
 import hextorgb
 import os
 import modFiles
-
+import openpyxl
+import pandas as pd
+import xlwt
 
 print("Scaling Factor Determines map size, Try 50 to start with")
 scaling_factor = float(input("Enter Scaling Factor: "))
@@ -32,10 +34,14 @@ def runGen():
     print("")
 
     installdir = input("Enter the CK3 install Directory : ")
-    # print("")
+
+    # set gamedir to be the game subfolder of installdir
+    gamedir = os.path.join(installdir, 'game')
+
 
     output_dir = os.path.join(modpath,modname)
 
+    print(gamedir)
     # Create output directory if it doesn't exist
 
     if not os.path.exists(output_dir):
@@ -162,12 +168,11 @@ def runGen():
 
     # Get output directory path from user input
     print("Automatic Map Filler Running")
-
     config_file_path = os.path.join(mapfilldir, "config.properties")
     print(config_file_path)
     moddir = output_dir
 
-    modFiles.modify_config(moddir, installdir, config_file_path)
+    modFiles.modify_config(moddir, gamedir, config_file_path)
 
     jar_path = os.path.join(mapfilldir, "CK3Tools.jar")
     cwd = mapfilldir
@@ -175,3 +180,4 @@ def runGen():
 
 
 runGen()
+
