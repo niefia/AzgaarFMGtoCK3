@@ -33,8 +33,6 @@ def familyGen(input_file_path, output_folder_path):
                 file.write(f"rf_{mainFamName} = {{\n\tgraphical_faith = 'orthodox_gfx' \n\thostility_doctrine = abrahamic_hostility_doctrine\n\tdoctrine_background_icon = core_tenet_banner_christian.dds\n}}")
 
 
-
-
 def religionChildren(input_file_path, output_file_path):
     def find_children(df):
         children = {}

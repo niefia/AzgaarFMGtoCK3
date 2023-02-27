@@ -129,8 +129,8 @@ def modify_config(moddir, installdir, config_file_path):
             lines[i] = f"moddirectory={moddir}\n"
         elif line.startswith("installdir="):
             lines[i] = f"installdir={installdir}\n"
-        elif line.startswith("removeVanilla=true"):
-            lines[i] = "removeVanilla=false\n"
+        elif line.startswith("removeVanilla=false"):
+            lines[i] = "removeVanilla=true\n"
 
     with open(config_file_path, "w") as f:
         f.writelines(lines)

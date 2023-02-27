@@ -9,6 +9,7 @@ import modFiles
 import openpyxl
 import pandas as pd
 import xlwt
+import culture
 
 print("Scaling Factor Determines map size, Try 50 to start with")
 scaling_factor = float(input("Enter Scaling Factor: "))
@@ -137,6 +138,12 @@ def runGen():
                         os.path.join(output_dir, "religionChildren_cName.xlsx"))
     religion.religionGen(os.path.join(output_dir, "religionChildren_cName.xlsx"),
                          os.path.join(output_dir, "common/religion/religions"))
+
+    #Runs Culture Generator
+
+    culture.heritage_gen(os.path.join(output_dir, 'combined_data.xlsx'), os.path.join(output_dir, 'common/culture/pillars'))
+
+    culture.culture_gen(os.path.join(output_dir, "combined_data.xlsx"),os.path.join(output_dir, 'common/culture/cultures'))
 
 
     #BFS Functions

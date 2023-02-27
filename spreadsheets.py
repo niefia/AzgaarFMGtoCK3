@@ -112,10 +112,15 @@ def json_to_sheet(input_file_path, output_file_path):
     for cell in culture:
         if not isinstance(cell, dict) or "name" not in cell or "i" not in cell:
             continue  # skip this row if it's not a dictionary or name or i is missing
+        name_words = cell["name"].split()
         row = {
             "i": cell["i"],
-            "name": cell["name"],
+            "name": name_words[0],
         }
+        if "type" in cell:
+            row["type"] = cell["type"]
+        if "origins" in cell and isinstance(cell["origins"], list) and len(cell["origins"]) > 0:
+            row["origin"] = cell["origins"][0]
         cultures_rows.append(row)
 
     suffixes = ["castle", "town", "field", "pool"]
@@ -151,7 +156,7 @@ def json_to_sheet(input_file_path, output_file_path):
     # Create data frames from the lists of dictionaries
     states_df = pd.DataFrame(states_rows, columns=["i", "name"])
     provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
-    cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name"])
+    cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name","type","origin"])
     religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center","origin"])
     burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
@@ -162,6 +167,9 @@ def json_to_sheet(input_file_path, output_file_path):
         cultures_df.to_excel(writer, sheet_name="cultures", index=False)
         religion_df.to_excel(writer, sheet_name="religion", index=False)
         burgs_df.to_excel(writer, sheet_name="burgs", index=False)
+
+#json_to_sheet('noemoji.json','ouput.xlsx')
+
 
 #export the cells geojson data to spreadsheet. previously xlsoutput.py
 def cells_geojson_to_sheet(input_file_path, output_file_path):
@@ -254,6 +262,7 @@ def nameCorrector(cells_file_path, combined_file_path, updated_file_path):
     df1['Kingdom'] = df1['Kingdom'].map(mapping)
     df1['County'] = df1['County'].map(provmapping)
     df1['Religion'] = df1['Religion'].map(religionmapping)
+    df1['Culture'] = df1['Culture'].map(culturemapping)
 
     # Save the updated first DataFrame to a new Excel file
     df1.to_excel(updated_file_path, index=False)
