@@ -128,6 +128,8 @@ def culture_gen(input_file, culture_dir):
         ethnicities1 = random.choice(ethnicities)
         ethnicities2 = random.choice(ethnicities)
 
+        name_list_choice = random.choice (['name_list_french','name_list_norman', 'name_list_occitan', 'name_list_akan', 'name_list_kru', 'name_list_guan', 'name_list_bedouin', 'name_list_levantine', 'name_list_egyptian', 'name_list_maghrebi', 'name_list_maghrebi', 'name_list_latgalian', 'name_list_lithuanian', 'name_list_prussian'])
+
         martial = random.choice(['martial_custom_male_only', 'martial_custom_equal', 'martial_custom_female_only'])
 
         filename = os.path.join(culture_dir, f'{name}.txt')
@@ -145,13 +147,13 @@ def culture_gen(input_file, culture_dir):
             {traditions3}
             {traditions4}
         }}
-        name_list = name_list_akan
-        coa_gfx = {coa_gfx}
-        building_gfx = {building_gfx}
-        clothing_gfx = {clothing_gfx}
-        unit_gfx = {unit_gfx}
-        ethnicities = {{\n
-            {ethnicities1}\n
+        name_list = {name_list_choice}
+        coa_gfx = {{{coa_gfx}}}
+        building_gfx = {{{building_gfx}}}
+        clothing_gfx = {{{clothing_gfx}}}
+        unit_gfx = {{{unit_gfx}}}
+        ethnicities = {{
+            {ethnicities1}
             {ethnicities2}
             
 
