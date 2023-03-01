@@ -12,9 +12,28 @@ import xlwt
 import culture
 import sys
 
-print("Scaling Factor Determines map size, Try 50 to start with")
-scaling_factor = float(input("Enter Scaling Factor: "))
-print("")
+#scaling_method = input("1,2 {1=Manual Scale 2=Auto Scale}:")
+
+scaling_method = 2
+scaling_factor = 35
+
+print("Scaling Method 1 = Manual Scaling            Scaling Method 2 = Auto-Scaling")
+
+scaling_method = int(input("Scaling Method: "))
+
+if scaling_method == 1:
+    print("Manual Scaling Method Selected")
+    scaling_factor == input("Enter Scaling Factor: ")
+elif scaling_method ==2:
+    print("Auto-Scaling Selected")
+else:
+    print("Invalid Scaling Method")
+    exit()
+
+
+#print("Scaling Factor Determines map size, Try 50 to start with")
+#scaling_factor = float(input("Enter Scaling Factor: "))
+#print("")
 
 def runGen():
     try:
@@ -101,28 +120,59 @@ def runGen():
         # Generate ProvinceDef.xlsx file for Cells
         spreadsheets.provinceDefCells(os.path.join(output_dir, "updated_file.xlsx"),
                                       os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
-        print("Generate ProvinceDef.xlsx file for Cells, must be manually converted to XLS for Map Filler tool")
+        print("Generate ProvinceDef.xlsx file for Cells")
 
         #Runs data to Rasterised Image
 
-        rasterMaps.heightmap(os.path.join(output_dir, "output.geojson"),
-                             os.path.join(output_dir, "map_data", "heightmap.png"), scaling_factor)
-        print("Generating Heightmap")
+
+        #heightmap scaling methods
+        if scaling_method == 1:
+            rasterMaps.heightmap(os.path.join(output_dir, "output.geojson"),
+                                 os.path.join(output_dir, "map_data", "heightmap.png"), scaling_factor)
+            print("Generating Heightmap")
+        elif scaling_method == 2:
+            rasterMaps.heightmapAutoScaledfunc(os.path.join(output_dir, "output.geojson"),
+                                           os.path.join(output_dir, "map_data", "heightmap.png"))
+            print("Generating Auto-Scaled Heightmap")
+        else:
+            print("Invalid scaling method")
+
+
+
+
 
         # Generate provinces image
         rasterMaps.provincesCells(os.path.join(output_dir, "output.geojson"),
                                   os.path.join(output_dir, "map_data", "provinces.png"), scaling_factor)
         print("Generating Cells provinces")
 
+
+
         # Generate biomes images
-        rasterMaps.biomes(os.path.join(output_dir, "output.geojson"), os.path.join(output_dir, "gfx", "map", "terrain"),
+
+        if scaling_method == 1:
+            rasterMaps.biomes(os.path.join(output_dir, "output.geojson"), os.path.join(output_dir, "gfx", "map", "terrain"),
                           scaling_factor)
-        print("Generated Biomes")
+            print("Generated Biomes")
+        elif scaling_method == 2:
+            rasterMaps.biomesAutoScaled(os.path.join(output_dir, "output.geojson"),
+                              os.path.join(output_dir, "gfx", "map", "terrain"))
+            print("Generated Auto-Scaled Biomes")
+        else:
+            print("Invalid scaling method")
+
+
+
+
+
+
+
 
         #Rename biome files to CK3 texture names using the json data
         modFiles.biomeWrite(os.path.join(output_dir, 'noemoji.json'),
                    os.path.join(output_dir, 'biomes.xlsx'),
                    os.path.join(output_dir, 'gfx/map/terrain'))
+
 
         input_zip_file = os.path.join(modpath, "tcs.zip")
         # Call the extract_zip_file function
@@ -148,20 +198,34 @@ def runGen():
 
 
         #BFS Functions
-        print("Breadth First search started")
+        print("Breadth First search started, this generates Baronies from cells and may take some time to run")
         # Run Breadth First search to generate Baronies
         BFS.bfs_distance(os.path.join(output_dir, "combined_data.xlsx"), os.path.join(output_dir, "cellsData.xlsx"),
                          os.path.join(output_dir, "BFSoutput.xlsx"))
+        print("")
         print("Breadth First search Complete")
 
         # Assign unique color to Baronies
         BFS.colorRandomBFS(os.path.join(output_dir, "BFSoutput.xlsx"))
         print("Assigning unique color to Baronies")
 
-        # Generate BFS provinces image
-        BFS.provinceMapBFS(os.path.join(output_dir, "BFSoutput.xlsx"), scaling_factor,
+
+
+
+        if scaling_method == 1:
+            # Generate BFS provinces image
+            BFS.provinceMapBFS(os.path.join(output_dir, "BFSoutput.xlsx"), scaling_factor,
                            os.path.join(output_dir, "map_data", "provinces.png"))
-        print("Generating BFS provinces")
+            print("Generating BFS provinces")
+        elif scaling_method == 2:
+            rasterMaps.provinceMapBFSAutoScaled(os.path.join(output_dir, "BFSoutput.xlsx"),
+                               os.path.join(output_dir, "map_data", "provinces.png"))
+
+
+
+
+
+
 
 
         #BFSProvDef

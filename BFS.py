@@ -11,6 +11,7 @@ from openpyxl import Workbook
 import openpyxl
 import re
 import xlwt
+import json
 
 
 def bfs_distance(combined_data_file, cells_data_file, output_file):
@@ -40,15 +41,31 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
         coordinates[location] = cells_data.loc[cells_data["id"] == location, "coordinates"].tolist()[0]
 
     # Expand outwards from existing points
+    total_cells = len(cells_data)
+    current_cell = 0
+    progress = 0
+    progress_bar_length = 20
+    print("Calculating distances...")
+    print("Progress Bar may finish at around 65 as it only counts populated cells ")
     while not frontier.empty():
         current = frontier.get()
-        if current in cells_data["id"].tolist() and cells_data.loc[cells_data["id"] == current, "type"].tolist()[0] != "ocean":
+        if current in cells_data["id"].tolist() and cells_data.loc[cells_data["id"] == current, "type"].tolist()[
+            0] != "ocean":
             for next_cell in cells_data.loc[cells_data["id"] == current, "neighbors"].tolist()[0]:
-                if next_cell not in cost_so_far and cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[0] != "ocean" and cells_data.loc[cells_data["id"] == next_cell, "County"].tolist()[0] == cells_data.loc[cells_data["id"] == current, "County"].tolist()[0]:
+                if next_cell not in cost_so_far and cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[
+                    0] != "ocean" and cells_data.loc[cells_data["id"] == next_cell, "County"].tolist()[0] == \
+                        cells_data.loc[cells_data["id"] == current, "County"].tolist()[0]:
                     cost_so_far[next_cell] = cost_so_far[current] + 1
                     started_at[next_cell] = started_at[current]
                     coordinates[next_cell] = cells_data.loc[cells_data["id"] == next_cell, "coordinates"].tolist()[0]
                     frontier.put(next_cell)
+                    # Update progress bar
+                    current_cell += 1
+                    progress = int(current_cell / total_cells * 100)
+                    percent_done = int(progress_bar_length * progress / 100)
+                    percent_left = progress_bar_length - percent_done
+                    progress_bar = "[" + "#" * percent_done + " " * percent_left + "]"
+                    print(f"\r{progress_bar} {progress}%", end='', flush=True)
 
     # Create a DataFrame to store the results
     output_data = pd.DataFrame(list(cost_so_far.items()), columns=["id", "distance"])
@@ -59,6 +76,22 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
 
     # Save the output DataFrame to a new Excel file
     output_data.to_excel(output_file, index=False)
+    print
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def colorRandomBFS(file_name):
     # Open the Excel file and select the active worksheet
@@ -123,8 +156,6 @@ def provinceMapBFS(file_path, scaling_factor,output_folder):
     img.show()
     # save image
     img.save(output_folder)
-
-
 
 
 

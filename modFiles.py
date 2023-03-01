@@ -40,8 +40,10 @@ def biomeWrite(json_file_path, xlsx_file_path, image_folder_path):
         ws.cell(row=row, column=2, value=id)
         if name == 'Temperate deciduous forest':
             ws.cell(row=row, column=3, value='plains_01_noisy_mask')
+            print("Assigned Plains")
         elif name == 'Grassland':
             ws.cell(row=row, column=3, value='steppe_01_mask')
+            print("Assigned Steppe")
         elif name == 'Tropical seasonal forest':
             ws.cell(row=row, column=3, value='forest_leaf_01_mask')
         elif name == 'Temperate rainforest':
@@ -64,6 +66,8 @@ def biomeWrite(json_file_path, xlsx_file_path, image_folder_path):
             ws.cell(row=row, column=3, value='snow_mask')
         elif name == 'Marine':
             ws.cell(row=row, column=3, value='beach_02_pebbles_mask')
+        else:
+            print("No Biome found")
 
     # Save the workbook to a file
     wb.save(xlsx_file_path)
@@ -74,6 +78,7 @@ def biomeWrite(json_file_path, xlsx_file_path, image_folder_path):
             try:
                 # Extract the number part of the filename (before the extension)
                 number = filename[6:-4]
+                print(number)
                 number = int(number)
             except ValueError:
                 # Skip files with invalid filenames
@@ -92,6 +97,13 @@ def biomeWrite(json_file_path, xlsx_file_path, image_folder_path):
 
                     # Rename the file
                     os.rename(os.path.join(image_folder_path, filename), destination_file)
+
+
+
+
+
+
+
 
 def extract_zip_file(input_zip_file, output_folder):
     """
