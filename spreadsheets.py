@@ -68,26 +68,28 @@ def json_to_sheet(input_file_path, output_file_path):
     names_set = set()  # to keep track of unique province names
 
     for cell in provinces:
-        if isinstance(cell, dict):
-            name = cell["name"]
-            base_name = name
-            suffix_idx = 1
-            while name in names_set:  # check if name is already in set
-                name = base_name + suffixes[suffix_idx - 1]  # add a suffix to the name
-                suffix_idx += 1
-            names_set.add(name)  # add the unique name to the set
+        if not isinstance(cell, dict) or "name" not in cell:
+            continue  # skip this row if cell is not a dictionary or name is missing
 
-            row = {
-                "i": cell["i"],
-                "state": cell["state"],
-                "center": cell["center"],
-                "burg": cell["burg"],
-                "name": name,
-                "formName": cell["formName"],
-                "fullName": cell["fullName"],
-                "color": cell["color"],
-            }
-            provinces_rows.append(row)
+        name = cell["name"]
+        base_name = name
+        suffix_idx = 1
+        while name in names_set:  # check if name is already in set
+            name = base_name + suffixes[suffix_idx - 1]  # add a suffix to the name
+            suffix_idx += 1
+        names_set.add(name)  # add the unique name to the set
+
+        row = {
+            "i": cell["i"],
+            "state": cell["state"],
+            "center": cell["center"],
+            "burg": cell["burg"],
+            "name": name,
+            "formName": cell["formName"],
+            "fullName": cell["fullName"],
+            "color": cell["color"],
+        }
+        provinces_rows.append(row)
 
 
     religions_rows = []
@@ -301,7 +303,7 @@ def provinceDefCells(file_path, output_path):
             if value.lower() in ["no religion", "no_religion"]:
                 value = ""  # make the cell blank
             else:
-                value = re.sub(r'\W+', '', value)  # remove non-alphanumeric characters and spaces
+                value = re.sub(r'\W+', '', value).lower()  # remove non-alphanumeric characters and spaces
             ws.cell(row=i, column=14, value=value)
 
     # Save only the "Copied Data" sheet in the output file

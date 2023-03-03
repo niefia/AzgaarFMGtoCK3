@@ -20,7 +20,7 @@ def familyGen(input_file_path, output_folder_path):
     for index, row in df.iterrows():
         name = row["name"]
         first_word = name.split(" ")[0].lower()  # Convert first_word to lowercase
-        mainFamName = re.sub(r'\W+', '', name)
+        mainFamName = re.sub(r'\W+', '', name).lower()
         print (mainFamName)
         value = row["origin"]
 
@@ -128,7 +128,7 @@ def religionGen(input_file_path,folder_path):
         type = row["type"]
         first_word = name.split(" ")[0]
         mainRelName = name.replace(" ", "_")
-        mainFamName = re.sub(r'\W+', '', name)
+        mainFamName = re.sub(r'\W+', '', name).lower()
         print(mainFamName)
         value = row["origin"]
         reform = ["unreformed_faith_doctrine"]
@@ -227,7 +227,7 @@ def religionGen(input_file_path,folder_path):
             for child in children:
                 faithcolor = color_generator()
                 if any(c.isalpha() for c in child):
-                    child = re.sub(r'\W+', '', child)  # remove non-alphanumeric characters and spaces
+                    child = re.sub(r'\W+', '', child).lower()  # remove non-alphanumeric characters and spaces
                     output = f"{child} = {{ "
                     outputs.append(output)
 

@@ -221,6 +221,8 @@ def ProvData(updated_file_name, province_def_name, output_file_name):
     # Define the columns to transfer
     columns_to_transfer = ['Cell ID', 'population', 'Kingdom', 'County', 'Culture', 'Religion']
 
+    merged['Religion'] = merged['Religion'].apply(lambda x: x.lower() if isinstance(x, str) else x)
+
     # Apply re.sub() function to the 'Religion' column
     merged['Religion'] = merged['Religion'].apply(lambda x: re.sub(r'\W+', '', x) if isinstance(x, str) else x)
 

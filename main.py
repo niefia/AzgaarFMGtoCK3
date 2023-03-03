@@ -1,3 +1,4 @@
+import bookmark
 import modFiles
 import religion
 import spreadsheets
@@ -11,6 +12,9 @@ import pandas as pd
 import xlwt
 import culture
 import sys
+import character
+import localization
+
 
 #scaling_method = input("1,2 {1=Manual Scale 2=Auto Scale}:")
 
@@ -42,7 +46,7 @@ def runGen():
         print("")
 
         # Get output directory path from user input
-        print("Example Mod Directory: C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod")
+        print("Example Mod Directory: C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod - the mod at the end should not be changed to your mods name, this is the CK3 mods folder")
         modpath = input("Enter the CK3 Mod directory : ")
         print("")
 
@@ -55,6 +59,9 @@ def runGen():
         print("")
 
         installdir = input("Enter the CK3 install Directory : ")
+
+        print("Do you want to generate characters to hold the state level titles? This feature is not finished yet and the characters should only be considered as placeholder to have Kingdoms exist at game start")
+        CharGen_response = input("Enter 'yes' or 'no': ")
 
         # set gamedir to be the game subfolder of installdir
         gamedir = os.path.join(installdir, 'game')
@@ -249,6 +256,28 @@ def runGen():
         jar_path = os.path.join(mapfilldir, "CK3Tools.jar")
         cwd = mapfilldir
         modFiles.run_jar(jar_path, cwd)
+
+        localization.religionLoc(output_dir)
+
+
+        if CharGen_response.lower() == "yes":
+            print("Character Generation running:")
+            character.rulerGenXL(os.path.join(output_dir, "combined_data.xlsx"),os.path.join(output_dir, "characters.xlsx"))
+            character.rulerWrite(os.path.join(output_dir, "characters.xlsx"),os.path.join(output_dir, "history/characters/"))
+            character.modHistory(os.path.join(output_dir, "characters.xlsx"),os.path.join(output_dir, "history/titles/"))
+            bookmark.bm_groups(output_dir)
+            bookmark.bm_generator(output_dir, 3)
+
+
+        elif CharGen_response.lower() == "no":
+            print("Shattered World Mode.")
+        else:
+            print("Invalid response. Please enter 'yes' or 'no'.")
+
+
+
+
+
     except Exception as e:
         print(f"An error occurred: {e}")
         # Wait for user input before closing
