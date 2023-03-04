@@ -65,7 +65,7 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
                     percent_done = int(progress_bar_length * progress / 100)
                     percent_left = progress_bar_length - percent_done
                     progress_bar = "[" + "#" * percent_done + " " * percent_left + "]"
-                    print(f"\r{progress_bar} {progress}%", end='', flush=True)
+                    #print(f"\r{progress_bar} {progress}%", end='', flush=True)
 
     # Create a DataFrame to store the results
     output_data = pd.DataFrame(list(cost_so_far.items()), columns=["id", "distance"])

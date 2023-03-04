@@ -14,25 +14,30 @@ import culture
 import sys
 import character
 import localization
-
-
-#scaling_method = input("1,2 {1=Manual Scale 2=Auto Scale}:")
+import uictk
+import customtkinter
 
 scaling_method = 2
 scaling_factor = 35
+modpath = ("")
+modname = ("")
+mapfilldir = ("")
+installdir = ("")
+CharGen_response = ("")
 
-print("Scaling Method 1 = Manual Scaling            Scaling Method 2 = Auto-Scaling")
 
-scaling_method = int(input("Scaling Method: "))
+#print("Scaling Method 1 = Manual Scaling            Scaling Method 2 = Auto-Scaling")
 
-if scaling_method == 1:
-    print("Manual Scaling Method Selected")
-    scaling_factor == input("Enter Scaling Factor: ")
-elif scaling_method ==2:
-    print("Auto-Scaling Selected")
-else:
-    print("Invalid Scaling Method")
-    exit()
+#scaling_method = int(input("Scaling Method: "))
+
+#if scaling_method == 1:
+    #print("Manual Scaling Method Selected")
+    #scaling_factor == input("Enter Scaling Factor: ")
+#elif scaling_method ==2:
+    #print("Auto-Scaling Selected")
+#else:
+    #print("Invalid Scaling Method")
+    #exit()
 
 
 #print("Scaling Factor Determines map size, Try 50 to start with")
@@ -287,7 +292,37 @@ def runGen():
 
 
 
-runGen()
+#runGen()
+import bookmark
+import modFiles
+import religion
+import spreadsheets
+import rasterMaps
+import BFS
+import hextorgb
+import os
+import modFiles
+import openpyxl
+import pandas as pd
+import xlwt
+import culture
+import sys
+import character
+import localization
+import uictk
+import customtkinter
+import sys
+sys.stdout = open("log.txt", "w")
+
+if __name__ == "__main__":
+    root = customtkinter.CTk
+    app = uictk.App()
+    app.mainloop()
+    sys.stdout.close()
+
+
+
+
 
 # Wait for user input before closing
-input("Press Enter to exit...")
+#input("Press Enter to exit...")
