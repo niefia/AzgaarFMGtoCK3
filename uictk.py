@@ -9,12 +9,10 @@ import time
 import threading
 import sys
 from PIL import Image
-import webview
 
 
 # All CustomTkinter Code
 
-is_webview_open = False
 
 class App(customtkinter.CTk):
 
@@ -241,25 +239,18 @@ class App(customtkinter.CTk):
                 entry_widget.delete(0, "end")
                 entry_widget.insert(0, directory)
 
-        # Opens the Guide in a Webview Window through the webview library
-
-
+        # Opens the Guide in a default browser
         def open_guide():
-            global is_webview_open
-            if not is_webview_open:
-                is_webview_open = True
-                webview.create_window(LANGUAGE["Guide"],
-                                      "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
-                                      width=900, height=600, resizable=True, fullscreen=False,
-                                      min_size=(900, 600), frameless=False, confirm_close=True)
-                webview.start()
-                is_webview_open = False
-        # Opens the FAQ in a Webview Window through the webview library
+            url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide"
+
+            # Open URL in default browser
+            os.system(f"start {url}")
+
         def open_FAQ():
-            webview.create_window(LANGUAGE["FAQ"],
-                                  "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
-                                  width=900, height=600, resizable=True, fullscreen=False,
-                                  min_size=(900, 600), frameless=False, confirm_close=True, )
+            url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide"
+
+            # Open URL in default browser
+            os.system(f"start {url}")
 
         # Creates a Entry for Manual Scaling Factor if you choose Manual Scaling and destoryes it if you choose Automatic Scaling.
         def optionmenu_callback(choice):
