@@ -10,10 +10,20 @@ import threading
 import sys
 from PIL import Image
 
+if not os.path.exists('language.txt'):
+    with open('language.txt', 'w') as f:
+        f.write('')
+
+
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, use the bundle directory as the current directory
+    current_dir = os.path.dirname(sys.executable)
+else:
+    # If the application is run as a script, use the directory containing the script as the current directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 # All CustomTkinter Code
-
-
 class App(customtkinter.CTk):
 
 
@@ -159,8 +169,8 @@ class App(customtkinter.CTk):
                 f.write(LANGUAGE)
 
         def run_converter():
+            self.Conversion_button.configure(state="disabled")
             self.Conversion_progress_bar.set(0.1)
-            #self.get_dirs_button.configure(state="disabled")
             modpath = self.CK3_Mod_Path_Entry.get()
             mapfilldir = self.CK3_Map_Filler_Tool_Path_Entry.get()
             installdir = self.CK3_Game_Path_Entry.get()
@@ -178,6 +188,11 @@ class App(customtkinter.CTk):
                 scaling_method = 2
                 scaling_factor = 50
                 scaling_factor = int(scaling_factor)
+
+            if generate_characters == "Generate Characters":
+                CharGen_response = "yes"
+            else:
+                CharGen_response = "no"
 
             gamedir = os.path.join(installdir, 'game')
             output_dir = os.path.join(modpath, modname)
@@ -216,6 +231,8 @@ class App(customtkinter.CTk):
                 sys.exit(1)  # exit with an error code
 
             messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
+            self.Conversion_button.configure(state="normal")
+
 
 
             print(installdir,modpath,mapfilldir,scaling_factor,scaling_method_str,modname,generate_characters,CharGen_response,scaling_method_str)  # or return game_path
@@ -272,12 +289,12 @@ class App(customtkinter.CTk):
            # Saves the paths to a file
 
         def save_paths():
-            Entry1_value = self.CK3_Mod_Path_Entry.get()
+            Entry1_value = self.CK3_Game_Path_Entry.get()
             Entry2_value = self.CK3_Mod_Path_Entry.get()
             Entry3_value = self.CK3_Map_Filler_Tool_Path_Entry.get()
 
             # Get the filename to save the data
-            current_dir = os.path.dirname(os.path.abspath(__file__))
+            #current_dir = os.path.dirname(os.path.abspath(__file__))
             filename = filedialog.asksaveasfilename(initialdir=current_dir, defaultextension='.txt', initialfile='paths.txt')
             if filename:
                 # Save the values to the file
@@ -291,8 +308,9 @@ class App(customtkinter.CTk):
         # Loads the paths from a file
         def load_paths():
             # Get the filename to load the data
-            current_dir = os.path.dirname(os.path.abspath(__file__))
+            #current_dir = os.path.dirname(os.path.abspath(__file__))
             filename = filedialog.askopenfilename(initialdir=current_dir, initialfile='paths.txt')
+
             if filename:
                 # Read the saved values from the file
                 with open(filename, 'r') as f:
