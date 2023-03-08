@@ -14,17 +14,148 @@ import webview
 
 # All CustomTkinter Code
 
+is_webview_open = False
 
 class App(customtkinter.CTk):
+
+
+
     def __init__(self):
         super().__init__()
         self.title("AzgaarFMG-to-CK3 Map Converter")
-        self.geometry(f"960x560")
+        self.geometry(f"980x580")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
         def test():
             print("test")
+
+        ENGLISH = {
+            "mod_dir": "Crusader Kings III Mod Directory:",
+            "map_filler_dir": "Map Filler Directory:",
+            "install_dir": "Crusader Kings III Install Directory:",
+            "scaling_factor_label": "Enter Scaling Factor (only used for Manual Scaling):",
+            "mod_name": "Mod Name",
+            "charGen": "Generate characters to hold the state level titles?",
+            "runConverter": "Run Converter",
+            "scaling_method": "Select Scaling Method",
+            "manualScaling": "Manual Scaling",
+            "autoScaling": "Auto Scaling",
+            "yes": "yes",
+            "no": "no",
+            "conversion": "Conversion",
+            "home": "Home",
+            "setup_frame_label" : "Pathing & Setup",
+            "setup":"Setup",
+            "Options":"Options",
+            "Guide":"Guide",
+            "FAQ":"FAQ",
+            "PH_Installdir":"CK3 install directory is found by Steam>CK3>Properties>Local Files>Browse",
+            "PH_Modfolder": "C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "The Folder you've installed Map Filler Tool into",
+            "Select Scaling Method": "Select Scaling Method",
+            "Start Conversion": "Start Conversion",
+            "Save Paths":"Save Paths",
+            "Load Paths":"Load Paths",
+            "Generate Characters":"Generate Characters",
+            "DontGenerate":"Don't Generate Characters",
+            "Restart to update":"Restart to update"
+        }
+        FRANÇAIS = {
+            "mod_dir": "Crusader Kings III Répertoire des Mods:",
+            "map_filler_dir": "Map Filler Répertoire:",
+            "install_dir": "Répertoire d'installation de Crusader Kings III:",
+            "scaling_factor_label": "Entrer le facteur d'échelle (utilisé uniquement pour la mise à l'échelle manuelle):",
+            "mod_name": "Nom du Mod",
+            "charGen": "Générer des personnages pour détenir les titres au niveau de l'État?",
+            "runConverter": "Exécuter le convertisseur",
+            "scaling_method": "Sélectionner la méthode de mise à l'échelle",
+            "manualScaling": "Mise à l'échelle manuelle",
+            "autoScaling": "Mise à l'échelle automatique",
+            "yes": "oui",
+            "no": "non",
+            "conversion": "Conversion",
+            "setup_frame_label" : "Tracé et mise en place",
+            "setup":"Mise en place",
+            "Options":"Options",
+            "Guide":"Guide",
+            "FAQ":"FAQ",
+            "PH_Installdir":"Le répertoire d'installation de CK3 est trouvé par Steam>CK3>Propriétés>Fichiers Locaux>Parcourir",
+            "PH_Modfolder": "C:/Utilisateurs/(Nom d'utilisateur)/Documents/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "Le dossier dans lequel vous avez installé Map Filler Tool",
+            "Select Scaling Method": "Sélectionner la méthode de mise à l'échelle",
+            "Start Conversion": "Démarrer la conversion",
+            "Save Paths":"Sauvegarder les chemins",
+            "Load Paths": "Chemins de charge",
+            "Generate Characters":"Générer des personnages",
+            "DontGenerate":"Ne pas générer de caractères",
+            "Restart to update": "Redémarrer pour mettre à jour"
+
+        }
+        DEUTSCH = {
+            "mod_dir": "Crusader Kings III Mod-Verzeichnis:",
+            "map_filler_dir": "Map Filler-Verzeichnis:",
+            "install_dir": "Crusader Kings III Installationsverzeichnis:",
+            "scaling_factor_label": "Eingabe des Skalierungsfaktors (nur bei manueller Skalierung verwenden):",
+            "mod_name": "Mod-Name",
+            "charGen": "Möchten Sie Charaktere generieren, die Titel des jeweiligen Landes tragen?",
+            "runConverter": "Converter ausführen",
+            "scaling_method": "Skalierungsmethode auswählen",
+            "manualScaling": "Manuelle Skalierung",
+            "autoScaling": "Automatische Skalierung",
+            "yes": "Ja",
+            "no": "Nein",
+            "conversion": "Konvertieren der Karte",
+            "home": "Startseite",
+            "setup_frame_label": "Dateiadressen und Einrichtung",
+            "setup": "Einrichtung",
+            "Options": "Optionen",
+            "Guide": "Guide",
+            "FAQ": "Häufig gestellte Fragen",
+            "PH_Installdir": "Das CK3-Installationsverzeichnis finden Sie über Steam>CK3>Eigenschaften>Lokale Dateien>Durchsuchen",
+            "PH_Modfolder": "C:/Benutzer/(Name)/Dokumente/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "Der Ordner, in dem Sie das Map-Filler Tool installiert haben",
+            "Select Scaling Method": "Skalierungsmethode auswählen",
+            "Start Conversion": "Konvertierung starten",
+            "Save Paths": "Dateiadressen speichern",
+            "Load Paths": "Pfade laden",
+            "Generate Characters": "Charaktere generieren",
+            "DontGenerate": "Keine Charaktere generieren",
+            "Restart to update":"Neustart zur Aktualisierung",
+
+
+        }
+
+
+        LANGUAGE = ENGLISH
+        # Open the file and read the content
+        with open('language.txt', 'r') as f:
+            language = f.read().strip()
+
+        # Check the value of the LANGUAGE variable
+        if language == 'ENGLISH':
+            print('The language is English.')
+            LANGUAGE = ENGLISH
+        elif language == 'FRANÇAIS':
+            print('The language is French.')
+            LANGUAGE = FRANÇAIS
+        elif language == 'DEUTSCH':
+            print("The language is DEUTSCH")
+            LANGUAGE = DEUTSCH
+        else:
+            print('No language found')
+            LANGUAGE = ENGLISH
+
+        def update_language(option):
+            global LANGUAGE
+
+            # Update the value of the LANGUAGE variable
+            LANGUAGE = option
+            print(f"Language updated to {LANGUAGE}")
+
+            # Write the selected language to the language file
+            with open('language.txt', 'w') as f:
+                f.write(LANGUAGE)
 
         def run_converter():
             self.Conversion_progress_bar.set(0.1)
@@ -93,6 +224,9 @@ class App(customtkinter.CTk):
             thread = threading.Thread(target=run_converter)
             thread.start()
 
+
+
+
         def browse_directory(entry_widget):
 
             # Open the directory browser
@@ -106,16 +240,20 @@ class App(customtkinter.CTk):
 
         # Opens the Guide in a Webview Window through the webview library
 
-        def open_guide():
-            webview.create_window("Guide",
-                                  "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
-                                  width=900, height=600, resizable=True, fullscreen=False,
-                                  min_size=(900, 600), frameless=False, confirm_close=True, )
 
-            webview.start()
+        def open_guide():
+            global is_webview_open
+            if not is_webview_open:
+                is_webview_open = True
+                webview.create_window(LANGUAGE["Guide"],
+                                      "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
+                                      width=900, height=600, resizable=True, fullscreen=False,
+                                      min_size=(900, 600), frameless=False, confirm_close=True)
+                webview.start()
+                is_webview_open = False
         # Opens the FAQ in a Webview Window through the webview library
         def open_FAQ():
-            webview.create_window("FAQ",
+            webview.create_window(LANGUAGE["FAQ"],
                                   "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
                                   width=900, height=600, resizable=True, fullscreen=False,
                                   min_size=(900, 600), frameless=False, confirm_close=True, )
@@ -214,7 +352,7 @@ class App(customtkinter.CTk):
         self.setup_frame_button.grid(row=2, column=0, sticky="ew")
 
         self.settings_frame_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40,
-                                                             border_spacing=10, text="Options",
+                                                             border_spacing=10, text=LANGUAGE["Options"],
                                                              fg_color="transparent", text_color=text_color_template,
                                                              hover_color=hover_color_template,
                                                              image=self.options_image, anchor="w",
@@ -230,16 +368,19 @@ class App(customtkinter.CTk):
         self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
 
         self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
-                                                         values=["English", "French"],
-                                                         command=self.change_appearance_mode_event,
+                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH"],
+                                                         command=update_language,
                                                          fg_color="#191919", button_color="#191919")
-        self.language_menu.grid(row=5, column=0, padx=20, pady=8, sticky="s")
+        self.language_menu.grid(row=6, column=0, padx=20, pady=8, sticky="s")
+
+        self.language_updatelabel = customtkinter.CTkLabel(self.navigation_frame, text = LANGUAGE["Restart to update"])
+        self.language_updatelabel.grid(row=5, column=0, padx=20, pady=0, sticky="s")
 
         self.appearance_mode_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
                                                                 values=["Light", "Dark", "System"],
                                                                 command=self.change_appearance_mode_event,
                                                                 fg_color="#191919", button_color="#191919")
-        self.appearance_mode_menu.grid(row=6, column=0, padx=20, pady=12, sticky="s")
+        self.appearance_mode_menu.grid(row=7, column=0, padx=20, pady=12, sticky="s")
 
 
         # Home Frame
@@ -248,7 +389,7 @@ class App(customtkinter.CTk):
 
         self.Guide_website_button = customtkinter.CTkButton(self.home_frame, corner_radius=0, height=40,
                                                             border_spacing=10,
-                                                            text="Guide",
+                                                            text=LANGUAGE["Guide"],
                                                             font=customtkinter.CTkFont(size=20, weight="bold"),
                                                             fg_color="transparent", text_color=text_color_template,
                                                             hover_color=hover_color_template,
@@ -259,7 +400,7 @@ class App(customtkinter.CTk):
 
         self.FAQ_website_button = customtkinter.CTkButton(self.home_frame, corner_radius=0, height=40,
                                                           border_spacing=10,
-                                                          text="FAQ",
+                                                          text=LANGUAGE["FAQ"],
                                                           font=customtkinter.CTkFont(size=20, weight="bold"),
                                                           fg_color="transparent", text_color=text_color_template,
                                                           hover_color=hover_color_template,
@@ -272,7 +413,7 @@ class App(customtkinter.CTk):
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.second_frame.grid_columnconfigure(0, weight=1)
 
-        self.setup_frame_label = customtkinter.CTkLabel(self.second_frame, text="Pathing & Setup",
+        self.setup_frame_label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["setup_frame_label"],
                                                         font=customtkinter.CTkFont(size=30, weight="bold"))
         self.setup_frame_label.grid(row=0, column=0, padx=20, pady=20)
 
@@ -280,12 +421,12 @@ class App(customtkinter.CTk):
 
         # CK3 Game Path
 
-        self.CK3_Game_Path_Label = customtkinter.CTkLabel(self.second_frame, text="CK3 Game Path:",
+        self.CK3_Game_Path_Label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["install_dir"],
                                                           font=customtkinter.CTkFont(size=20, weight="bold"))
         self.CK3_Game_Path_Label.grid(row=1, column=0, padx=20, pady=20, sticky="w")
 
         self.CK3_Game_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
-                                                          placeholder_text="CK3 install directory is found by Steam>CK3>Properties>Local Files>Browse")
+                                                          placeholder_text=LANGUAGE["PH_Installdir"])
         self.CK3_Game_Path_Entry.grid(row=2, column=0, padx=20, pady=20, sticky="nw")
 
         self.CK3_Game_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
@@ -300,12 +441,12 @@ class App(customtkinter.CTk):
 
         # CK3 Mod Folder Path
 
-        self.CK3_Mod_Path_Label = customtkinter.CTkLabel(self.second_frame, text="CK3 Mod Path:",
+        self.CK3_Mod_Path_Label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["mod_dir"],
                                                          font=customtkinter.CTkFont(size=20, weight="bold"))
         self.CK3_Mod_Path_Label.grid(row=3, column=0, padx=20, pady=20, sticky="w")
 
         self.CK3_Mod_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
-                                                         placeholder_text="C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod", )
+                                                         placeholder_text=LANGUAGE["PH_Modfolder"], )
         self.CK3_Mod_Path_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="nw")
 
         self.CK3_Mod_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
@@ -321,13 +462,13 @@ class App(customtkinter.CTk):
         # Map Filler Tool Path
 
         self.CK3_Map_Filler_Tool_Path_Label = customtkinter.CTkLabel(self.second_frame,
-                                                                     text="CK3 Map Filler Tool Path:",
+                                                                     text=LANGUAGE["map_filler_dir"],
                                                                      font=customtkinter.CTkFont(size=20, weight="bold"))
         self.CK3_Map_Filler_Tool_Path_Label.grid(row=5, column=0, padx=20, pady=20, sticky="w")
 
         self.CK3_Map_Filler_Tool_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600,
                                                                      fg_color="transparent",
-                                                                     placeholder_text="The folder you've installed Map Filler Tool into", )
+                                                                     placeholder_text=LANGUAGE["PH_MapFiller"], )
         self.CK3_Map_Filler_Tool_Path_Entry.grid(row=6, column=0, padx=20, pady=20, sticky="nw")
 
         self.CK3_Map_Filler_Tool_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0,
@@ -348,7 +489,7 @@ class App(customtkinter.CTk):
                                                          border_spacing=1,
                                                          fg_color="transparent",
                                                          text_color=text_color_template,
-                                                         hover="false", text="Save Paths",
+                                                         hover="false", text=LANGUAGE["Save Paths"],
                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
@@ -359,7 +500,7 @@ class App(customtkinter.CTk):
                                                          border_spacing=1,
                                                          fg_color="transparent",
                                                          text_color=text_color_template,
-                                                         hover="false", text="Load Paths",
+                                                         hover="false", text=LANGUAGE["Load Paths"],
                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
@@ -371,11 +512,11 @@ class App(customtkinter.CTk):
         self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.third_frame.grid_columnconfigure(0, weight=1)
 
-        self.Options_Label = customtkinter.CTkLabel(self.third_frame, text="Options",
+        self.Options_Label = customtkinter.CTkLabel(self.third_frame, text=LANGUAGE["Options"],
                                                     font=customtkinter.CTkFont(size=30, weight="bold"))
         self.Options_Label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
 
-        self.Options_Scaling_Label = customtkinter.CTkLabel(self.third_frame, text="Select Scaling Method:",
+        self.Options_Scaling_Label = customtkinter.CTkLabel(self.third_frame, text=LANGUAGE["Select Scaling Method"],
                                                             font=customtkinter.CTkFont(size=20, weight="bold"))
         self.Options_Scaling_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
 
@@ -390,7 +531,7 @@ class App(customtkinter.CTk):
         self.Options_Scaling_Menu.grid(row=2, column=0, padx=20, pady=20, sticky="n")
 
         self.Generate_Characters_Label = customtkinter.CTkLabel(self.third_frame,
-                                                                text="Do you want to create characters who will hold state-level titles?",
+                                                                text=LANGUAGE["charGen"],
                                                                 font=customtkinter.CTkFont(size=20, weight="bold"))
         self.Generate_Characters_Label.grid(row=5, column=0, padx=20, pady=20, sticky="n")
 
@@ -410,14 +551,14 @@ class App(customtkinter.CTk):
                                                        font=customtkinter.CTkFont(size=30, weight="bold"))
         self.Conversion_Label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
 
-        self.Mod_Name_Label = customtkinter.CTkLabel(self.fourth_frame, text="Enter Mod Name:",
+        self.Mod_Name_Label = customtkinter.CTkLabel(self.fourth_frame, text=LANGUAGE["mod_name"],
                                                      font=customtkinter.CTkFont(size=20, weight="bold"))
         self.Mod_Name_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
 
         self.Mod_Name_Entry = customtkinter.CTkEntry(self.fourth_frame, fg_color="transparent", )
         self.Mod_Name_Entry.grid(row=2, column=0, padx=20, pady=20, sticky="n")
 
-        self.start_conversion_label = customtkinter.CTkLabel(self.fourth_frame, text="Start Conversion",
+        self.start_conversion_label = customtkinter.CTkLabel(self.fourth_frame, text=LANGUAGE["Start Conversion"],
                                                              font=customtkinter.CTkFont(size=20, weight="bold"))
         self.start_conversion_label.grid(row=3, column=0, padx=20, pady=20, sticky="n")
 
@@ -479,6 +620,10 @@ class App(customtkinter.CTk):
 
     def change_appearance_mode_event(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
+
+
+
+
 
 
 app = App()
