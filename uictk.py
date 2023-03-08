@@ -2,195 +2,484 @@ import customtkinter
 import tkinter as tk
 from tkinter import filedialog
 import tkinter
-import generate
 from tkinter import messagebox
 import os
+import generate
 import time
 import threading
 import sys
-
-class MyTabView(customtkinter.CTkTabview):
-
-
-    def run_converter(self):
-        self.progressbar.set(0.1)
-        self.get_dirs_button.configure(state="disabled")
-
-        # Call the generator function here
-        modpath = self.path_text_boxes[0].get()
-        mapfilldir = self.path_text_boxes[1].get()
-        installdir = self.path_text_boxes[2].get()
-        scaling_method_str = self.scaling_method_combobox.get()
-        scaling_factor = self.scaling_factor_entry.get()
-        modname = self.modname_entry.get()
-        generate_characters = self.chargen_combobox.get()
-        CharGen_response = generate_characters.lower()
-
-        scaling_factor = int(scaling_factor)
-        if scaling_method_str == "Manual Scaling":
-            scaling_method = 1
-        else:
-            scaling_method = 2
+from PIL import Image
+import webview
 
 
-        gamedir = os.path.join(installdir, 'game')
-        output_dir = os.path.join(modpath, modname)
-        try:
-
-            generate.printValues(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            # Update the progress bar
-            self.progressbar.set(0.12)
-            generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-
-            self.progressbar.set(0.3)
-            generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            self.progressbar.set(0.35)
-            time.sleep(1)
-            generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            self.progressbar.set(0.4)
-            time.sleep(1)
-            generate.runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            self.progressbar.set(0.7)
-            generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            self.progressbar.set(0.9)
-            generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir)
-            self.progressbar.set(1.0)
-        except Exception as e:
-            print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
-            self.get_dirs_button.configure(state="normal")
-            messagebox.showinfo("Error", "An error occurred, Please check the log.txt file if this error is unexpected!")
-            # Wait for user input before closing
-            input("Press Enter to exit...")
-            sys.exit(1)  # exit with an error code
-
-
-        messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
-        self.get_dirs_button.configure(state="normal")
-
-
-    def run_conv_thread(self):
-        # Create a new thread to run the function
-        thread = threading.Thread(target=self.run_converter)
-        thread.start()
-
-
-    def browse_directory(self, row):
-        # Get the text box associated with the browse button
-        text_box = self.path_text_boxes[row]
-
-        # Open the directory selection dialog
-        directory = filedialog.askdirectory()
-
-        # If a directory was selected, update the text box
-        if directory:
-            text_box.delete(0, tk.END)
-            text_box.insert(0, directory)
-
-
-
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        # create tabs
-        self.add("Paths")
-        self.add("Options")
-        self.add("Convert")
-
-        # add widgets on tabs
-        self.label = customtkinter.CTkLabel(master=self.tab("Paths"), text="hello")
-        self.label.grid(row=0, column=0, padx=20, pady=10,sticky=tkinter.E)
-
-        ### DIRECTORIES ###
-
-        self.path_labels = ["Crusader Kings III Mod Directory:", "Map Filler Directory:",
-                            "Crusader Kings III Install Directory:"]
-        self.path_text_boxes = []
-        self.browse_buttons = []
-
-        for row, label in enumerate(self.path_labels):
-            # Create the label
-            label_widget = customtkinter.CTkLabel(master=self.tab("Paths"), text=label)
-            label_widget.grid(row=row, column=0, sticky="w", padx=5, pady=5)
-
-            # Create the text box
-            text_box_widget = customtkinter.CTkEntry(master=self.tab("Paths"), width=600)
-            text_box_widget.grid(row=row, column=1, sticky="we", padx=5, pady=5)
-            self.path_text_boxes.append(text_box_widget)
-
-            # Create the browse button
-            browse_button_widget = customtkinter.CTkButton(master=self.tab("Paths"), text="Browse",
-                                                           command=lambda row=row: self.browse_directory(row))
-            browse_button_widget.grid(row=row, column=2, sticky="e", padx=5, pady=5)
-            self.browse_buttons.append(browse_button_widget)
-
-
-
-        # Options tab
-
-
-        self.scaling_method_label = customtkinter.CTkLabel(master=self.tab("Options"), text="Select scaling method:")
-        self.scaling_method_label.grid(row=0, column=0, padx=20, pady=10)
-        self.scaling_method_label.pack()
-
-
-
-        self.scaling_method_options = ["Manual Scaling", "Auto-Scaling"]
-        self.scaling_method_combobox = customtkinter.CTkComboBox(master=self.tab("Options"), values=self.scaling_method_options)
-        self.scaling_method_combobox.pack()
-
-        self.scaling_factor_label = customtkinter.CTkLabel(master=self.tab("Options"),text="Enter Scaling Factor (only used for Manual Scaling):")
-        self.scaling_factor_label.pack()
-
-
-        self.scaling_factor_entry = customtkinter.CTkEntry(master=self.tab("Options"))
-        self.scaling_factor_entry.insert(0, "50")
-        self.scaling_factor_entry.pack()
-
-        self.modname_label = customtkinter.CTkLabel(master=self.tab("Options"), text="Mod Name:")
-        self.modname_label.pack()
-
-        self.modname_entry = customtkinter.CTkEntry(master=self.tab("Options"))
-        self.modname_entry.insert(0, "Conversion")
-        self.modname_entry.pack()
-
-        self.chargen_label = customtkinter.CTkLabel(master=self.tab("Options"), text="Generate characters to hold the state level titles?")
-        self.chargen_label.pack()
-
-        self.chargen_var = tk.StringVar(value="No")
-        self.chargen_options = ["Yes", "No"]
-        self.chargen_combobox = customtkinter.CTkComboBox(master=self.tab("Options"), values=self.chargen_options)
-        self.chargen_combobox.pack()
-
-
-        #options c1
-        #self.labelc1 = customtkinter.CTkLabel(master=self.tab("Options"), text="hello")
-        #self.labelc1.grid(row=0, column=1, padx=20, pady=10)
-
-
-
-        #CONVERT TAB
-
-        # Create the set values button
-        self.get_dirs_button = customtkinter.CTkButton(master=self.tab("Convert"), text="Run Converter", command=self.run_conv_thread)
-        self.get_dirs_button.pack()
-
-        self.progressbar = customtkinter.CTkProgressBar(master=self.tab("Convert"))
-        self.progressbar.pack(padx=20, pady=10)
-        self.progressbar.set(0.0)
-
+# All CustomTkinter Code
 
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        customtkinter.set_appearance_mode("dark")
-        self.minsize(1100, 400)
-        self.title("CK3 Map Generation Tool")
-        self.tab_view = MyTabView(master=self,width = 1200, height = 400)
+        self.title("AzgaarFMG-to-CK3 Map Converter")
+        self.geometry(f"960x560")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
 
-        self.tab_view.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        self.tab_view.grid_rowconfigure(3, weight=1)
+        def test():
+            print("test")
+
+        def run_converter():
+            self.Conversion_progress_bar.set(0.1)
+            #self.get_dirs_button.configure(state="disabled")
+            modpath = self.CK3_Mod_Path_Entry.get()
+            mapfilldir = self.CK3_Map_Filler_Tool_Path_Entry.get()
+            installdir = self.CK3_Game_Path_Entry.get()
+            scaling_method_str = self.Options_Scaling_Menu.get()
+            modname = self.Mod_Name_Entry.get()
+            generate_characters = self.Generate_Characters_Menu.get()
+            CharGen_response = generate_characters.lower()
+
+            if scaling_method_str == "Manual Scaling":
+                scaling_method = 1
+                scaling_factor = self.Manual_Scaling_Entry.get()
+                scaling_factor = int(scaling_factor)
+
+            else:
+                scaling_method = 2
+                scaling_factor = 50
+                scaling_factor = int(scaling_factor)
+
+            gamedir = os.path.join(installdir, 'game')
+            output_dir = os.path.join(modpath, modname)
+            try:
+                generate.printValues(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, output_dir)
+                # Update the progress bar
+                self.Conversion_progress_bar.set(0.12)
+                generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.3)
+                generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                      CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.35)
+                time.sleep(1)
+                generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                       CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.4)
+                time.sleep(1)
+                generate.runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                   CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.7)
+                generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                    CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.9)
+                generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(1.0)
+            except Exception as e:
+                print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
+                self.get_dirs_button.configure(state="normal")
+                messagebox.showinfo("Error",
+                                    "An error occurred, Please check the log.txt file if this error is unexpected!")
+                # Wait for user input before closing
+                input("Press Enter to exit...")
+                sys.exit(1)  # exit with an error code
+
+            messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
 
 
-#app = App()
-#app.mainloop()
+            print(installdir,modpath,mapfilldir,scaling_factor,scaling_method_str,modname,generate_characters,CharGen_response,scaling_method_str)  # or return game_path
+
+        def run_conv_thread():
+            # Create a new thread to run the function
+            thread = threading.Thread(target=run_converter)
+            thread.start()
+
+        def browse_directory(entry_widget):
+
+            # Open the directory browser
+            directory = filedialog.askdirectory()
+            # If the user selected a directory, set the entry widget to the directory.
+            # Since we have entry widgets for multiple paths, every time you open the directory browser, it will set the entry widget to the directory you selected.
+
+            if directory:
+                entry_widget.delete(0, "end")
+                entry_widget.insert(0, directory)
+
+        # Opens the Guide in a Webview Window through the webview library
+
+        def open_guide():
+            webview.create_window("Guide",
+                                  "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
+                                  width=900, height=600, resizable=True, fullscreen=False,
+                                  min_size=(900, 600), frameless=False, confirm_close=True, )
+
+            webview.start()
+        # Opens the FAQ in a Webview Window through the webview library
+        def open_FAQ():
+            webview.create_window("FAQ",
+                                  "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide",
+                                  width=900, height=600, resizable=True, fullscreen=False,
+                                  min_size=(900, 600), frameless=False, confirm_close=True, )
+
+        # Creates a Entry for Manual Scaling Factor if you choose Manual Scaling and destoryes it if you choose Automatic Scaling.
+        def optionmenu_callback(choice):
+
+            if choice == "Manual Scaling":
+
+                self.Manual_Scaling_Label = customtkinter.CTkLabel(self.third_frame,
+                                                                   text="Enter Manual Scaling Factor:",
+                                                                   font=customtkinter.CTkFont(size=20, weight="bold"))
+                self.Manual_Scaling_Label.grid(row=3, column=0, padx=20, pady=20, sticky="n")
+                self.Manual_Scaling_Entry = customtkinter.CTkEntry(self.third_frame, fg_color="transparent", )
+                self.Manual_Scaling_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="n")
+            elif choice == "Automatic Scaling":
+                self.Manual_Scaling_Label.destroy()
+                self.Manual_Scaling_Entry.destroy()
+
+        def save_paths(entry_widget):
+            file_path = filedialog.asksaveasfilename(defaultextension=".txt")
+            if file_path:
+                with open(file_path, 'w') as f:
+                    f.write(entry_widget.get())
+
+        # Light and Dark mode Color Templates
+
+        text_color_template = ("gray10", "gray90")
+        hover_color_template = ("gray70", "gray30")
+
+        # Load Images
+        # Images are loaded from the Image_Assets folder
+        # All Images are from the Icons8 Icon Library https://icons8.com/
+        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Image_Assets")
+        self.home_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "home_light.png")),
+                                                 dark_image=Image.open(os.path.join(image_path, "home_dark.png")),
+                                                 size=(20, 20))
+        self.setup_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "paths_light.png")),
+                                                  dark_image=Image.open(os.path.join(image_path, "paths_dark.png")),
+                                                  size=(20, 20))
+        self.options_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "options-light.png")),
+            dark_image=Image.open(os.path.join(image_path, "options-dark.png")), size=(20, 20))
+
+        self.browse_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "browse_light.png")),
+                                                   dark_image=Image.open(os.path.join(image_path, "browse_dark.png")),
+                                                   size=(30, 30))
+        self.General_Setup_Download_Image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "download_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "download_dark.png")), size=(50, 50))
+
+        self.Start_Button_Image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "start_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "start_dark.png")), size=(50, 50))
+
+        self.next_button_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "next_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "next_dark.png")), size=(30, 30))
+
+        self.guide_button_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "guide_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "guide_dark.png")), size=(30, 30))
+
+        self.FAQ_Image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "FAQ_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "FAQ_dark.png")), size=(30, 30))
+
+        self.Save_Paths_Image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "save_light.png")),
+            dark_image=Image.open(os.path.join(image_path, "save_dark.png")), size=(30, 30))
+
+        # Navigation Frame and its Widgets
+        # Contains All the Buttons for the different Frames but not the commands for the buttons
+        self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.navigation_frame.grid(row=0, column=0, sticky="nsew")
+        self.navigation_frame.grid_rowconfigure(5, weight=1)
+
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text="CK3 Map Converter",
+                                                             compound="left",
+                                                             font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
+
+        self.home_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+                                                   text="Home",
+                                                   fg_color="transparent", text_color=text_color_template,
+                                                   hover_color=hover_color_template,
+                                                   image=self.home_image, anchor="w", command=self.home_button_event)
+        self.home_button.grid(row=1, column=0, sticky="ew")
+
+        self.setup_frame_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40,
+                                                          border_spacing=10, text="Setup",
+                                                          fg_color="transparent", text_color=text_color_template,
+                                                          hover_color=hover_color_template,
+                                                          image=self.setup_image, anchor="w",
+                                                          command=self.setup_frame_button_event)
+        self.setup_frame_button.grid(row=2, column=0, sticky="ew")
+
+        self.settings_frame_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40,
+                                                             border_spacing=10, text="Options",
+                                                             fg_color="transparent", text_color=text_color_template,
+                                                             hover_color=hover_color_template,
+                                                             image=self.options_image, anchor="w",
+                                                             command=self.settings_frame_button_event)
+        self.settings_frame_button.grid(row=3, column=0, sticky="ew")
+
+        self.conversion_frame_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40,
+                                                               border_spacing=10, text="Conversion",
+                                                               fg_color="transparent", text_color=text_color_template,
+                                                               hover_color=hover_color_template,
+                                                               image=self.options_image, anchor="w",
+                                                               command=self.conversion_frame_button_event)
+        self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
+
+        self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
+                                                         values=["English", "French"],
+                                                         command=self.change_appearance_mode_event,
+                                                         fg_color="#191919", button_color="#191919")
+        self.language_menu.grid(row=5, column=0, padx=20, pady=8, sticky="s")
+
+        self.appearance_mode_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
+                                                                values=["Light", "Dark", "System"],
+                                                                command=self.change_appearance_mode_event,
+                                                                fg_color="#191919", button_color="#191919")
+        self.appearance_mode_menu.grid(row=6, column=0, padx=20, pady=12, sticky="s")
+
+
+        # Home Frame
+        self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.home_frame.grid_columnconfigure(0, weight=1)
+
+        self.Guide_website_button = customtkinter.CTkButton(self.home_frame, corner_radius=0, height=40,
+                                                            border_spacing=10,
+                                                            text="Guide",
+                                                            font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                            fg_color="transparent", text_color=text_color_template,
+                                                            hover_color=hover_color_template,
+                                                            anchor="w",
+                                                            image=self.guide_button_image,
+                                                            command=open_guide)
+        self.Guide_website_button.grid(row=0, column=0, sticky="ew")
+
+        self.FAQ_website_button = customtkinter.CTkButton(self.home_frame, corner_radius=0, height=40,
+                                                          border_spacing=10,
+                                                          text="FAQ",
+                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                          fg_color="transparent", text_color=text_color_template,
+                                                          hover_color=hover_color_template,
+                                                          anchor="w",
+                                                          image=self.FAQ_Image,
+                                                          command=open_FAQ)
+        self.FAQ_website_button.grid(row=1, column=0, sticky="ew")
+
+        # Setup Frame
+        self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.second_frame.grid_columnconfigure(0, weight=1)
+
+        self.setup_frame_label = customtkinter.CTkLabel(self.second_frame, text="Pathing & Setup",
+                                                        font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.setup_frame_label.grid(row=0, column=0, padx=20, pady=20)
+
+        # Paths all the Paths go the same way  We write the Label then the Entry then the Browse Button
+
+        # CK3 Game Path
+
+        self.CK3_Game_Path_Label = customtkinter.CTkLabel(self.second_frame, text="CK3 Game Path:",
+                                                          font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.CK3_Game_Path_Label.grid(row=1, column=0, padx=20, pady=20, sticky="w")
+
+        self.CK3_Game_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
+                                                          placeholder_text="CK3 install directory is found by Steam>CK3>Properties>Local Files>Browse")
+        self.CK3_Game_Path_Entry.grid(row=2, column=0, padx=20, pady=20, sticky="nw")
+
+        self.CK3_Game_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
+                                                                   border_spacing=1,
+                                                                   fg_color="transparent",
+                                                                   text_color=text_color_template,
+                                                                   hover="false", text="", image=self.browse_image,
+                                                                   border_color="gray", anchor="nw",
+                                                                   command=lambda: browse_directory(
+                                                                       self.CK3_Game_Path_Entry))
+        self.CK3_Game_Path_Browse_Button.grid(row=2, column=0, padx=10, pady=15, sticky="ne")
+
+        # CK3 Mod Folder Path
+
+        self.CK3_Mod_Path_Label = customtkinter.CTkLabel(self.second_frame, text="CK3 Mod Path:",
+                                                         font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.CK3_Mod_Path_Label.grid(row=3, column=0, padx=20, pady=20, sticky="w")
+
+        self.CK3_Mod_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
+                                                         placeholder_text="C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod", )
+        self.CK3_Mod_Path_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="nw")
+
+        self.CK3_Mod_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
+                                                                  border_spacing=1,
+                                                                  fg_color="transparent",
+                                                                  text_color=text_color_template,
+                                                                  hover="false", text="", image=self.browse_image,
+                                                                  border_color="gray", anchor="nw",
+                                                                  command=lambda: browse_directory(
+                                                                      self.CK3_Mod_Path_Entry))
+        self.CK3_Mod_Path_Browse_Button.grid(row=4, column=0, padx=10, pady=15, sticky="ne")
+
+        # Map Filler Tool Path
+
+        self.CK3_Map_Filler_Tool_Path_Label = customtkinter.CTkLabel(self.second_frame,
+                                                                     text="CK3 Map Filler Tool Path:",
+                                                                     font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.CK3_Map_Filler_Tool_Path_Label.grid(row=5, column=0, padx=20, pady=20, sticky="w")
+
+        self.CK3_Map_Filler_Tool_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600,
+                                                                     fg_color="transparent",
+                                                                     placeholder_text="The folder you've installed Map Filler Tool into", )
+        self.CK3_Map_Filler_Tool_Path_Entry.grid(row=6, column=0, padx=20, pady=20, sticky="nw")
+
+        self.CK3_Map_Filler_Tool_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0,
+                                                                              height=20,
+                                                                              border_spacing=1,
+                                                                              fg_color="transparent",
+                                                                              text_color=text_color_template,
+                                                                              hover="false", text="",
+                                                                              image=self.browse_image,
+                                                                              border_color="gray", anchor="nw",
+                                                                              command=lambda: browse_directory(
+                                                                                  self.CK3_Map_Filler_Tool_Path_Entry))
+        self.CK3_Map_Filler_Tool_Path_Browse_Button.grid(row=6, column=0, padx=10, pady=15, sticky="ne")
+
+        # Button for Saving Paths
+
+        self.Save_Paths_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
+                                                         border_spacing=1,
+                                                         fg_color="transparent",
+                                                         text_color=text_color_template,
+                                                         hover="false", text="Save Paths",
+                                                         font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                         image=self.Save_Paths_Image,
+                                                         border_color="gray", anchor="se",
+                                                         command=lambda: save_paths(self), state="disabled")
+        self.Save_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="se")
+
+        self.Load_Paths_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
+                                                         border_spacing=1,
+                                                         fg_color="transparent",
+                                                         text_color=text_color_template,
+                                                         hover="false", text="Load Paths",
+                                                         font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                         image=self.Save_Paths_Image,
+                                                         border_color="gray", anchor="se",
+                                                         command=lambda: load_paths(self), state="disabled")
+
+        self.Load_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="sw")
+
+        # Options Frame
+        self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.third_frame.grid_columnconfigure(0, weight=1)
+
+        self.Options_Label = customtkinter.CTkLabel(self.third_frame, text="Options",
+                                                    font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.Options_Label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
+
+        self.Options_Scaling_Label = customtkinter.CTkLabel(self.third_frame, text="Select Scaling Method:",
+                                                            font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.Options_Scaling_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
+
+        # To show the default value of the optionmenu as "None" instead of "Manual Scaling" or "Yes"
+        Scaling_var = customtkinter.StringVar(value="None")
+        Charactergen_var = customtkinter.StringVar(value="None")
+
+        self.Options_Scaling_Menu = customtkinter.CTkOptionMenu(self.third_frame, variable=Scaling_var,
+                                                                values=["Manual Scaling", "Automatic Scaling"],
+                                                                fg_color="#4F4F4F", button_color="gray",
+                                                                command=optionmenu_callback)
+        self.Options_Scaling_Menu.grid(row=2, column=0, padx=20, pady=20, sticky="n")
+
+        self.Generate_Characters_Label = customtkinter.CTkLabel(self.third_frame,
+                                                                text="Do you want to create characters who will hold state-level titles?",
+                                                                font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.Generate_Characters_Label.grid(row=5, column=0, padx=20, pady=20, sticky="n")
+
+        self.Generate_Characters_Menu = customtkinter.CTkOptionMenu(self.third_frame, variable=Charactergen_var,
+                                                                    values=["Generate Characters",
+                                                                            "Don't Generate Characters"],
+                                                                    fg_color="#4F4F4F", button_color="gray",
+                                                                    command=optionmenu_callback)
+        self.Generate_Characters_Menu.grid(row=6, column=0, padx=20, pady=20, sticky="n")
+
+        # Conversion Frame
+
+        self.fourth_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.fourth_frame.grid_columnconfigure(0, weight=1)
+
+        self.Conversion_Label = customtkinter.CTkLabel(self.fourth_frame, text="Conversion",
+                                                       font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.Conversion_Label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
+
+        self.Mod_Name_Label = customtkinter.CTkLabel(self.fourth_frame, text="Enter Mod Name:",
+                                                     font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.Mod_Name_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
+
+        self.Mod_Name_Entry = customtkinter.CTkEntry(self.fourth_frame, fg_color="transparent", )
+        self.Mod_Name_Entry.grid(row=2, column=0, padx=20, pady=20, sticky="n")
+
+        self.start_conversion_label = customtkinter.CTkLabel(self.fourth_frame, text="Start Conversion",
+                                                             font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.start_conversion_label.grid(row=3, column=0, padx=20, pady=20, sticky="n")
+
+        self.Conversion_button = customtkinter.CTkButton(self.fourth_frame, corner_radius=0, height=20,
+                                                         border_spacing=1, fg_color="transparent",
+                                                         text_color=text_color_template,
+                                                         hover_color=hover_color_template, text="",
+                                                         border_color="gray"
+                                                         , command=run_conv_thread, image=self.Start_Button_Image, anchor="n",
+                                                         )
+        self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
+
+        self.Conversion_progress_bar = customtkinter.CTkProgressBar(self.fourth_frame, )
+        self.Conversion_progress_bar.grid(row=5, column=0, padx=20, pady=20, sticky="n")
+        self.Conversion_progress_bar.set(0)
+
+        # General Frame Settings
+        # Contain Commands for all buttons to open Frames
+        self.select_frame_by_name("home")
+
+    def select_frame_by_name(self, name):
+
+        self.home_button.configure(fg_color=("gray75", "gray25") if name == "home" else "transparent")
+        self.setup_frame_button.configure(fg_color=("gray75", "gray25") if name == "frame_2" else "transparent")
+        self.settings_frame_button.configure(fg_color=("gray75", "gray25") if name == "frame_3" else "transparent")
+        self.conversion_frame_button.configure(fg_color=("gray75", "gray25") if name == "frame_4" else "transparent")
+
+        # show selected frame
+        if name == "home":
+            self.home_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.home_frame.grid_forget()
+        if name == "frame_2":
+            self.second_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.second_frame.grid_forget()
+        if name == "frame_3":
+            self.third_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.third_frame.grid_forget()
+
+        if name == "frame_4":
+            self.fourth_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+
+            self.fourth_frame.grid_forget()
+
+    def home_button_event(self):
+        self.select_frame_by_name("home")
+
+    def setup_frame_button_event(self):
+        self.select_frame_by_name("frame_2")
+
+    def settings_frame_button_event(self):
+        self.select_frame_by_name("frame_3")
+
+    def conversion_frame_button_event(self):
+        self.select_frame_by_name("frame_4")
+
+    def change_appearance_mode_event(self, new_appearance_mode):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+
+app = App()
+app.mainloop()
