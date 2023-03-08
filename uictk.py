@@ -154,6 +154,9 @@ class App(customtkinter.CTk):
             print(f"Language updated to {LANGUAGE}")
 
             # Write the selected language to the language file
+            if not os.path.exists('language.txt'):
+                with open('language.txt', 'w') as f:
+                    f.write('')
             with open('language.txt', 'w') as f:
                 f.write(LANGUAGE)
 
