@@ -276,11 +276,47 @@ class App(customtkinter.CTk):
                 self.Manual_Scaling_Label.destroy()
                 self.Manual_Scaling_Entry.destroy()
 
-        def save_paths(entry_widget):
-            file_path = filedialog.asksaveasfilename(defaultextension=".txt")
-            if file_path:
-                with open(file_path, 'w') as f:
-                    f.write(entry_widget.get())
+
+
+           # Saves the paths to a file
+
+        def save_paths():
+            Entry1_value = self.CK3_Mod_Path_Entry.get()
+            Entry2_value = self.CK3_Mod_Path_Entry.get()
+            Entry3_value = self.CK3_Map_Filler_Tool_Path_Entry.get()
+
+            # Get the filename to save the data
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            filename = filedialog.asksaveasfilename(initialdir=current_dir, defaultextension='.txt', initialfile='paths.txt')
+            if filename:
+                # Save the values to the file
+                with open(filename, 'w') as f:
+                    f.write(f'{Entry1_value}, {Entry2_value}, {Entry3_value}')
+
+                # Save the values to a file
+                with open(os.path.join(current_dir, 'data.txt'), 'w') as f:
+                    f.write(f'{Entry1_value}, {Entry2_value}, {Entry3_value}')
+
+        # Loads the paths from a file
+        def load_paths():
+            # Get the filename to load the data
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            filename = filedialog.askopenfilename(initialdir=current_dir, initialfile='paths.txt')
+            if filename:
+                # Read the saved values from the file
+                with open(filename, 'r') as f:
+                    data = f.read().split(', ')
+                    Entry1_value, Entry2_value, Entry3_value = data
+
+                # Display the loaded values in the entry widgets
+                self.CK3_Game_Path_Entry.delete(0, tk.END)
+                self.CK3_Mod_Path_Entry.delete(0, tk.END)
+                self.CK3_Map_Filler_Tool_Path_Entry.delete(0, tk.END)
+
+                self.CK3_Game_Path_Entry.insert(0, Entry1_value)
+                self.CK3_Mod_Path_Entry.insert(0, Entry2_value)
+                self.CK3_Map_Filler_Tool_Path_Entry.insert(0, Entry3_value)
+
 
         # Light and Dark mode Color Templates
 
@@ -496,7 +532,7 @@ class App(customtkinter.CTk):
                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
-                                                         command=lambda: save_paths(self), state="disabled")
+                                                         command=save_paths, )
         self.Save_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="se")
 
         self.Load_Paths_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
@@ -507,8 +543,7 @@ class App(customtkinter.CTk):
                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
-                                                         command=lambda: load_paths(self), state="disabled")
-
+                                                         command=load_paths,)
         self.Load_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="sw")
 
         # Options Frame
@@ -629,5 +664,5 @@ class App(customtkinter.CTk):
 
 
 
-app = App()
-app.mainloop()
+#app = App()
+#app.mainloop()
