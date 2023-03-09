@@ -22,7 +22,6 @@ else:
     # If the application is run as a script, use the directory containing the script as the current directory
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-
 # All CustomTkinter Code
 class App(customtkinter.CTk):
 
@@ -134,29 +133,29 @@ class App(customtkinter.CTk):
 
         }
 
-
         LANGUAGE = ENGLISH
+
         # Open the file and read the content
         with open('language.txt', 'r') as f:
             language = f.read().strip()
 
         # Check the value of the LANGUAGE variable
         if language == 'ENGLISH':
-            print('The language is English.')
+            print('Language set to ENGLISH from language.txt')
             LANGUAGE = ENGLISH
         elif language == 'FRANÇAIS':
-            print('The language is French.')
+            print('Language set to FRANÇAIS from language.txt')
             LANGUAGE = FRANÇAIS
         elif language == 'DEUTSCH':
-            print("The language is DEUTSCH")
+            print("Language set to DEUTSCH from language.txt")
             LANGUAGE = DEUTSCH
         else:
             print('No language found')
             LANGUAGE = ENGLISH
 
+
         def update_language(option):
             global LANGUAGE
-
             # Update the value of the LANGUAGE variable
             LANGUAGE = option
             print(f"Language updated to {LANGUAGE}")
@@ -167,6 +166,7 @@ class App(customtkinter.CTk):
                     f.write('')
             with open('language.txt', 'w') as f:
                 f.write(LANGUAGE)
+
 
         def run_converter():
             self.Conversion_button.configure(state="disabled")
@@ -259,7 +259,6 @@ class App(customtkinter.CTk):
         # Opens the Guide in a default browser
         def open_guide():
             url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide"
-
             # Open URL in default browser
             os.system(f"start {url}")
 
@@ -294,21 +293,17 @@ class App(customtkinter.CTk):
             Entry3_value = self.CK3_Map_Filler_Tool_Path_Entry.get()
 
             # Get the filename to save the data
-            #current_dir = os.path.dirname(os.path.abspath(__file__))
             filename = filedialog.asksaveasfilename(initialdir=current_dir, defaultextension='.txt', initialfile='paths.txt')
             if filename:
                 # Save the values to the file
                 with open(filename, 'w') as f:
                     f.write(f'{Entry1_value}, {Entry2_value}, {Entry3_value}')
 
-                # Save the values to a file
-                with open(os.path.join(current_dir, 'data.txt'), 'w') as f:
-                    f.write(f'{Entry1_value}, {Entry2_value}, {Entry3_value}')
+
 
         # Loads the paths from a file
         def load_paths():
             # Get the filename to load the data
-            #current_dir = os.path.dirname(os.path.abspath(__file__))
             filename = filedialog.askopenfilename(initialdir=current_dir, initialfile='paths.txt')
 
             if filename:
@@ -419,7 +414,10 @@ class App(customtkinter.CTk):
                                                          values=["ENGLISH", "FRANÇAIS","DEUTSCH"],
                                                          command=update_language,
                                                          fg_color="#191919", button_color="#191919")
+
         self.language_menu.grid(row=6, column=0, padx=20, pady=8, sticky="s")
+
+        self.language_menu.set(language)
 
         self.language_updatelabel = customtkinter.CTkLabel(self.navigation_frame, text = LANGUAGE["Restart to update"])
         self.language_updatelabel.grid(row=5, column=0, padx=20, pady=0, sticky="s")
