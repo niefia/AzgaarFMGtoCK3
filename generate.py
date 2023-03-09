@@ -374,20 +374,24 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
 def runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
 
 
-
+        print("Extracting tcs.zip")
         input_zip_file = os.path.join(modpath, "tcs.zip")
         # Call the extract_zip_file function
         modFiles.extract_zip_file(input_zip_file, output_dir)
+        print("Finished extracting tcs.zip")
 
 
 
         #Runs Religion Generator
-
+        print("Running religion family gen")
         religion.familyGen(os.path.join(output_dir, "combined_data.xlsx"),os.path.join(output_dir, "common/religion/religion_families"))
+        print("Running religion children gen")
         religion.religionChildren(os.path.join(output_dir, "combined_data.xlsx"),
                                   os.path.join(output_dir, "religionChildren.xlsx"))
+        print("running religion genchil")
         religion.relGenChil(os.path.join(output_dir, "religionChildren.xlsx"),
                             os.path.join(output_dir, "religionChildren_cName.xlsx"))
+        print("running ")
         religion.religionGen(os.path.join(output_dir, "religionChildren_cName.xlsx"),
                              os.path.join(output_dir, "common/religion/religions"))
 
