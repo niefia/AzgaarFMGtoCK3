@@ -132,6 +132,37 @@ class App(customtkinter.CTk):
 
 
         }
+        HUNGARIAN = {
+            "mod_dir": "Crusader Kings III Modok mappa:",
+            "map_filler_dir": "Térképfeltöltő mappa:",
+            "install_dir": "Crusader Kings III Telepítési mappa:",
+            "scaling_factor_label": "Írja be a méretezési egységet (Csak Manuális Méretezéshez):",
+            "mod_name": "Mod Neve",
+            "charGen": "Legyenek Karakterek generálva az állami szintekre?",
+            "runConverter": "Konverter futtatása",
+            "scaling_method": "Méretezési folyamatot",
+            "manualScaling": "Manuális Méretezés",
+            "autoScaling": "Automatikus Méretezés",
+            "yes": "Igen",
+            "no": "Nem",
+            "conversion": "Konvertálás",
+            "home": "Kezdőképernyő",
+            "setup_frame_label": "Útvonalak és Konfiguráció",
+            "setup": "Konfiguráció",
+            "Options": "Beállítások",
+            "Guide": "Útmutató",
+            "FAQ": "GYIK",
+            "PH_Installdir": "Talált CK3 telepítési mappa: Steam>CK3>Properties>Local Files>Browse",
+            "PH_Modfolder": "C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "Térképfeltöltő program mappája",
+            "Select Scaling Method": "Válassza ki a méretezési folyamatot",
+            "Start Conversion": "Konvertálás megkezdése",
+            "Save Paths": "Útvonalak Mentése",
+            "Load Paths": "Útvonalak Betöltése",
+            "Generate Characters": "Generáljon Karaktereket",
+            "DontGenerate": "Ne Generáljon Karaktereket",
+            "Restart to update": "Frissítéshez indítsa újra a programot!"
+        }
 
         LANGUAGE = ENGLISH
 
@@ -149,6 +180,9 @@ class App(customtkinter.CTk):
         elif language == 'DEUTSCH':
             print("Language set to DEUTSCH from language.txt")
             LANGUAGE = DEUTSCH
+        elif language == 'HUNGARIAN':
+            print("Langauge set to HUNGARIAN")
+            LANGUAGE = HUNGARIAN
         else:
             print('No language found')
             LANGUAGE = ENGLISH
@@ -411,7 +445,7 @@ class App(customtkinter.CTk):
         self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
 
         self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
-                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH"],
+                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN"],
                                                          command=update_language,
                                                          fg_color="#191919", button_color="#191919")
 
