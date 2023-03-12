@@ -252,6 +252,10 @@ class App(customtkinter.CTk):
                 generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.9)
+                print(output_dir)
+                generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                    CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.95)
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(1.0)
