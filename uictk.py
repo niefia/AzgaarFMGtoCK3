@@ -235,29 +235,36 @@ class App(customtkinter.CTk):
                                      CharGen_response, gamedir, output_dir)
                 # Update the progress bar
                 self.Conversion_progress_bar.set(0.12)
+                self.status_label.configure(text="Extracting JSON & Geojson to spreadsheet")
+
                 generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
+                self.status_label.configure(text="Spreadsheets Complte")
+                self.status_label.configure(text="Producing Map Rasters")
                 self.Conversion_progress_bar.set(0.3)
                 generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                       CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.35)
-                time.sleep(1)
+                self.status_label.configure(text="Generating Religions Data")
                 generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                        CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.4)
-                time.sleep(1)
+                self.status_label.configure(text="Running BFS for Barony Generation from Cells")
                 generate.runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                    CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.7)
+                self.status_label.configure(text="Running Map Filler tool")
                 generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.9)
-                print(output_dir)
+                self.status_label.configure(text="Generating Paper Map")
                 generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.95)
+                self.status_label.configure(text="Generating Character + Bookmark if selected")
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
+                self.status_label.configure(text="Done")
                 self.Conversion_progress_bar.set(1.0)
             except Exception as e:
                 print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
@@ -657,6 +664,11 @@ class App(customtkinter.CTk):
         self.Conversion_progress_bar = customtkinter.CTkProgressBar(self.fourth_frame, )
         self.Conversion_progress_bar.grid(row=5, column=0, padx=20, pady=20, sticky="n")
         self.Conversion_progress_bar.set(0)
+
+        self.status_label = customtkinter.CTkLabel(self.fourth_frame, text="Status",
+                                                             font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.status_label.grid(row=6, column=0, padx=20, pady=20, sticky="n")
+
 
         # General Frame Settings
         # Contain Commands for all buttons to open Frames
