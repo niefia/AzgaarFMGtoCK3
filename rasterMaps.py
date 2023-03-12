@@ -335,7 +335,7 @@ def paint_land_sea_mask(heightmap_file, output_file):
     img = Image.fromarray(color_array)
     img.save(output_file, "PNG")
 
-paint_land_sea_mask("heightmap.png","masksea.png")
+
 
 
 
@@ -418,6 +418,7 @@ def overlay_png_on_dds(png_filename, dds_filename, output_filename):
     # Combine the overlay with the dds image and save the result
     result_image = Image.alpha_composite(dds_image.convert("RGBA"), overlay_image)
     result_image.save(output_filename)
+
 
 
 #create_masked_image('sea_image.png', 'land_image.png', 'masksea.png', 'flatmap1.dds')

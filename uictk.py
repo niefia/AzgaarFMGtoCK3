@@ -202,7 +202,10 @@ class App(customtkinter.CTk):
                 f.write(LANGUAGE)
 
 
+
         def run_converter():
+            self.Conversion_button.grid_forget()
+            self.loading_wheel.grid(row=4, column=0, padx=20, pady=20, sticky="n")
             self.Conversion_button.configure(state="disabled")
             self.Conversion_progress_bar.set(0.1)
             modpath = self.CK3_Mod_Path_Entry.get()
@@ -277,7 +280,8 @@ class App(customtkinter.CTk):
 
             messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
             self.Conversion_button.configure(state="normal")
-
+            self.loading_wheel.grid_forget()
+            self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
 
 
             print(installdir,modpath,mapfilldir,scaling_factor,scaling_method_str,modname,generate_characters,CharGen_response,scaling_method_str)  # or return game_path
@@ -288,7 +292,11 @@ class App(customtkinter.CTk):
             thread.start()
 
 
-
+        def openModFolder():
+            modpath = self.CK3_Mod_Path_Entry.get()
+            modname = self.Mod_Name_Entry.get()
+            output_dir = os.path.join(modpath, modname)
+            os.startfile(output_dir)
 
         def browse_directory(entry_widget):
 
@@ -669,6 +677,21 @@ class App(customtkinter.CTk):
                                                              font=customtkinter.CTkFont(size=20, weight="bold"))
         self.status_label.grid(row=6, column=0, padx=20, pady=20, sticky="n")
 
+        self.loading_wheel = LoadingWheel(self.fourth_frame,size=50, bg_color="#EBEBEB", arc_color="#1a1a1a")
+
+
+
+        self.openModFolder = customtkinter.CTkButton(self.fourth_frame, corner_radius=0, height=20,
+                                                         border_spacing=1, fg_color="transparent",
+                                                         text_color=text_color_template,
+                                                         hover_color=hover_color_template, text="Open Output folder",
+                                                         border_color="gray"
+                                                         , command=openModFolder, image=self.browse_image,
+                                                         anchor="n",
+                                                         )
+        self.openModFolder.grid(row=7, column=0, padx=20, pady=20, sticky="sw")
+
+
 
         # General Frame Settings
         # Contain Commands for all buttons to open Frames
@@ -715,11 +738,51 @@ class App(customtkinter.CTk):
 
     def change_appearance_mode_event(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
+        if new_appearance_mode == "Dark":
+            self.loading_wheel.redraw(bg_color="#242424", arc_color="#dce4ee")
+            print("Changed wheel to dark")
+        elif new_appearance_mode =="Light":
+            self.loading_wheel.redraw(bg_color="#ebebeb", arc_color="#1a1a1a")
+            print("Changed wheel to light")
 
 
+class LoadingWheel(tk.Canvas):
+    def __init__(self, parent, size=50, bg_color="#EBEBEB", arc_color="#1a1a1a", width=5, speed=10):
+        tk.Canvas.__init__(self, parent, width=size, height=size, highlightthickness=0)
+        self.parent = parent
+        self.bg_color = bg_color
+        self.arc_color = arc_color
+        self.width = width
+        self.speed = speed
+        self.arc = None
+        self.start_angle = 0
+        self.after_id = None  # store the id of the 'after' call
+        self.draw_wheel()
 
+    def draw_wheel(self):
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)  # cancel previous 'after' call if it exists
+        self.arc = self.create_arc(
+            self.width, self.width, self.winfo_width() - self.width,
+            self.winfo_height() - self.width, start=self.start_angle,
+            extent=50, width=self.width, style=tk.ARC, outline=self.arc_color
+        )
+        self.after_id = self.after(self.speed, self.animate)  # store the id of the new 'after' call
+        self.configure(background=self.bg_color)
 
+    def animate(self):
+        self.start_angle = (self.start_angle - 10) % 360
+        self.delete(self.arc)
+        self.draw_wheel()
 
+    def redraw(self, bg_color=None, arc_color=None):
+        if bg_color:
+            self.bg_color = bg_color
+            self.configure(background=self.bg_color)
+        if arc_color:
+            self.arc_color = arc_color
+            self.delete(self.arc)
+            self.draw_wheel()
 
 #app = App()
 #app.mainloop()

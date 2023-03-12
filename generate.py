@@ -369,6 +369,24 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
 
 
 
+def runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
+
+    print(output_dir)
+    print("Paper Map Generating...")
+    rasterMaps.paint_land_sea_mask(os.path.join(output_dir,"map_data/heightmap.png"),os.path.join(output_dir,"masksea.png"))
+
+
+    rasterMaps.create_masked_image(os.path.join(output_dir, 'sea_image.png'), os.path.join(output_dir, 'land_image.png'),os.path.join(output_dir, 'masksea.png'), os.path.join(output_dir, 'flatmap1.dds'))
+
+
+    rasterMaps.produce_outline(os.path.join(output_dir,'masksea.png'), os.path.join(output_dir, 'flatmapBorder.png'))
+
+    rasterMaps.overlay_png_on_dds(os.path.join(output_dir,'flatmapBorder.png'), os.path.join(output_dir,'flatmap1.dds'), os.path.join(output_dir,'gfx/map/terrain/flatmap.dds'))
+    print("Paper Map Generated")
+
+
+
+
 
 
 def runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
