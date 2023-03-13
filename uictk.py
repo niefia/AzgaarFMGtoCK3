@@ -333,8 +333,8 @@ class App(customtkinter.CTk):
                 self.Manual_Scaling_Entry = customtkinter.CTkEntry(self.third_frame, fg_color="transparent", )
                 self.Manual_Scaling_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="n")
             elif choice == "Automatic Scaling":
-                self.Manual_Scaling_Label.destroy()
-                self.Manual_Scaling_Entry.destroy()
+                self.Manual_Scaling_Label.grid_remove()
+                self.Manual_Scaling_Entry.grid_remove()
 
 
 
@@ -383,7 +383,7 @@ class App(customtkinter.CTk):
         # Load Images
         # Images are loaded from the Image_Assets folder
         # All Images are from the Icons8 Icon Library https://icons8.com/
-        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Image_Assets")
+        image_path = "Image_Assets/"
         self.home_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "home_light.png")),
                                                  dark_image=Image.open(os.path.join(image_path, "home_dark.png")),
                                                  size=(20, 20))
