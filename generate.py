@@ -485,8 +485,9 @@ def runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, 
 
 
 def Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
-    spreadsheets.terrainGenIdtoName(os.path.join(output_dir, 'cellsData.xlsx'), os.path.join(output_dir, 'biomes.xlsx'))
-    spreadsheets.terrainGen(os.path.join(output_dir, 'cellsData.xlsx'), (os.path.join(output_dir, 'common/province_terrain/00_province_terrain.txt')))
+    BFS.BaronyIdBiomes(os.path.join(output_dir, "combined_data.xlsx"),os.path.join(output_dir, "cellsData.xlsx"),os.path.join(output_dir, "townBiomes.csv"))
+    spreadsheets.terrainGenIdtoName(os.path.join(output_dir, 'townBiomes.csv'), os.path.join(output_dir, 'biomes.xlsx'))
+    spreadsheets.terrainGen(os.path.join(output_dir, 'townBiomes.csv'), (os.path.join(output_dir, 'common/province_terrain/00_province_terrain.txt')))
 
 
 

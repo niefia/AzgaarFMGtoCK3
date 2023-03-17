@@ -326,22 +326,14 @@ def terrainGenIdtoName(cells_path, biomes_path):
     biome_dict = dict(zip(biomes_df.iloc[:, 1], biomes_df.iloc[:, 0]))
 
     # Load cellsData file
-    cells_df = pd.read_excel(cells_path)
+    cells_df = pd.read_csv(cells_path)
 
     # Replace biome IDs with biome names using the dictionary
     cells_df['biome'] = cells_df['biome'].map(biome_dict)
 
     # Save the updated cellsData file to the same directory
     output_path = cells_path
-    cells_df.to_excel(output_path, index=False)
-
-
-
-
-#terrainGenIdtoName(os.path.join(output_dir, 'cellsData.xlsx'),os.path.join(output_dir, 'biomes.xlsx'))
-
-
-#terrainGenIdtoName('cellsData.xlsx','biomes.xlsx')
+    cells_df.to_csv(output_path, index=False)
 
 
 
@@ -350,8 +342,8 @@ def terrainGen(cellsData,provinceTerraintxt):
     import pandas as pd
     import random
 
-    # read in the Excel file
-    df = pd.read_excel(cellsData)
+    # read in the CSV file
+    df = pd.read_csv(cellsData)
 
     # define the biome-terrain mapping with weights
     biome_terrain_map = {
@@ -418,20 +410,18 @@ def terrainGen(cellsData,provinceTerraintxt):
         terrain_weights = biome_terrain_map[biome]
 
         # check for population and override terrain for Temperate deciduous forest biomes
-        if biome == 'Temperate deciduous forest' and row['population'] > 20000:
+        if biome == 'Temperate deciduous forest' and row['population'] > 35000:
             assigned_terrain = 'farmlands'
-        elif biome == 'Hot Desert' and row['population'] > 20000:
+        elif biome == 'Hot Desert' and row['population'] > 35000:
             assigned_terrain = 'floodplains'
         else:
             assigned_terrain = random.choices(list(terrain_weights.keys()), weights=list(terrain_weights.values()))[0]
 
-        terrain_list.append(f"{row['id']}={assigned_terrain}")
+        terrain_list.append(f"{row['i']}={assigned_terrain}")
 
     # write the assigned terrain for each cell to a text file
     with open(provinceTerraintxt, 'w') as f:
         f.write('\n'.join(terrain_list))
-
-
 
 
 
