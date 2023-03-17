@@ -264,6 +264,9 @@ class App(customtkinter.CTk):
                 generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.95)
+                generate.Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                    CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.97)
                 self.status_label.configure(text="Generating Character + Bookmark if selected")
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
@@ -383,7 +386,6 @@ class App(customtkinter.CTk):
 
         # Load Images
         # Images are loaded from the Image_Assets folder
-        # All Images are from the Icons8 Icon Library https://icons8.com/
         image_path = "Image_Assets/"
         self.home_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "home_light.png")),
                                                  dark_image=Image.open(os.path.join(image_path, "home_dark.png")),

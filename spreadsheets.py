@@ -317,6 +317,125 @@ def provinceDefCells(file_path, output_path):
 
 
 
+import os
+def terrainGenIdtoName(cells_path, biomes_path):
+    # Load biomes file
+    biomes_df = pd.read_excel(biomes_path, header=None)
+
+    # Create a dictionary mapping biome IDs to biome names
+    biome_dict = dict(zip(biomes_df.iloc[:, 1], biomes_df.iloc[:, 0]))
+
+    # Load cellsData file
+    cells_df = pd.read_excel(cells_path)
+
+    # Replace biome IDs with biome names using the dictionary
+    cells_df['biome'] = cells_df['biome'].map(biome_dict)
+
+    # Save the updated cellsData file to the same directory
+    output_path = cells_path
+    cells_df.to_excel(output_path, index=False)
+
+
+
+
+#terrainGenIdtoName(os.path.join(output_dir, 'cellsData.xlsx'),os.path.join(output_dir, 'biomes.xlsx'))
+
+
+#terrainGenIdtoName('cellsData.xlsx','biomes.xlsx')
+
+
+
+
+def terrainGen(cellsData,provinceTerraintxt):
+    import pandas as pd
+    import random
+
+    # read in the Excel file
+    df = pd.read_excel(cellsData)
+
+    # define the biome-terrain mapping with weights
+    biome_terrain_map = {
+        'Marine': {
+            'plains': 1.0
+        },
+        'Hot desert': {
+            'desert': 0.6,
+            'desert_mountains': 0.3,
+            'drylands': 0.1
+        },
+        'Cold desert': {
+            'desert': 0.6,
+            'desert_mountains': 0.3,
+            'tundra': 0.1
+        },
+        'Savanna': {
+            'plains': 0.6,
+            'hills': 0.3,
+            'steppe': 0.1
+        },
+        'Grassland': {
+            'steppe': 0.9,
+            'hills': 0.1
+        },
+        'Tropical seasonal forest': {
+            'jungle': 0.4,
+            'plains': 0.4,
+            'hills': 0.2
+        },
+        'Temperate deciduous forest': {
+            'forest': 0.6,
+            'hills': 0.4
+        },
+        'Tropical rainforest': {
+            'jungle': 1.0
+        },
+        'Temperate rainforest': {
+            'forest': 0.7,
+            'hills': 0.3
+        },
+        'Taiga': {
+            'taiga': 0.8,
+            'hills': 0.2
+        },
+        'Tundra': {
+            'tundra': 0.8,
+            'hills': 0.2
+        },
+        'Glacier': {
+            'mountains': 1.0
+        },
+        'Wetland': {
+            'wetlands': 1.0,
+        }
+    }
+
+    # create a list to hold the assigned terrain for each cell
+    terrain_list = []
+
+    # loop through each row in the DataFrame and assign a terrain based on the biome
+    for i, row in df.iterrows():
+        biome = row['biome']
+        terrain_weights = biome_terrain_map[biome]
+
+        # check for population and override terrain for Temperate deciduous forest biomes
+        if biome == 'Temperate deciduous forest' and row['population'] > 20000:
+            assigned_terrain = 'farmlands'
+        elif biome == 'Hot Desert' and row['population'] > 20000:
+            assigned_terrain = 'floodplains'
+        else:
+            assigned_terrain = random.choices(list(terrain_weights.keys()), weights=list(terrain_weights.values()))[0]
+
+        terrain_list.append(f"{row['id']}={assigned_terrain}")
+
+    # write the assigned terrain for each cell to a text file
+    with open(provinceTerraintxt, 'w') as f:
+        f.write('\n'.join(terrain_list))
+
+
+
+
+
+
 #remove_emoji_from_json("emoji.json", "noemoji.json")
 
 #colorRandom("input.geojson","output.geojson")
