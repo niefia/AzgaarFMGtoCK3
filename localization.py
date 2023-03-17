@@ -20,6 +20,14 @@ def religionLoc(output_dir):
         }
         religions[modifiedName] = religion
 
+    # Make sure the directory exists
+    os.makedirs(os.path.join(output_dir, "localization/english"), exist_ok=True)
+
+    # Make sure the file exists
+    yml_file = os.path.join(output_dir, "localization/english/religion_conv_l_english.yml")
+    if not os.path.exists(yml_file):
+        open(yml_file, "w", encoding="utf-8-sig").close()
+
     # create the yml file
     yml_file = os.path.join(output_dir, "localization/english/religion_conv_l_english.yml")
     with open(yml_file, "w", encoding="utf-8-sig") as f:

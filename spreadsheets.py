@@ -149,6 +149,7 @@ def json_to_sheet(input_file_path, output_file_path):
                 "i": cell.get("i", None),
                 "cell": cell.get("cell", None),
                 "name": name + suffix,
+                "type": cell.get("type", None),
             }
             burgs_rows.append(row)
 
@@ -160,7 +161,7 @@ def json_to_sheet(input_file_path, output_file_path):
     provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
     cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name","type","origin"])
     religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center","origin"])
-    burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
+    burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name","type"])
 
     # Save each data frame to a separate sheet in the same Excel file
     with pd.ExcelWriter(output_file_path) as writer:

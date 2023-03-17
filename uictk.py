@@ -57,7 +57,7 @@ class App(customtkinter.CTk):
             "Options":"Options",
             "Guide":"Guide",
             "FAQ":"FAQ",
-            "PH_Installdir":"CK3 install directory is found by Steam>CK3>Properties>Local Files>Browse",
+            "PH_Installdir":"C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III",
             "PH_Modfolder": "C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod",
             "PH_MapFiller": "The Folder you've installed Map Filler Tool into",
             "Select Scaling Method": "Select Scaling Method",
@@ -184,7 +184,7 @@ class App(customtkinter.CTk):
             print("Langauge set to HUNGARIAN")
             LANGUAGE = HUNGARIAN
         else:
-            print('No language found')
+            print('No language found, setting to English as backup')
             LANGUAGE = ENGLISH
 
 
@@ -316,7 +316,7 @@ class App(customtkinter.CTk):
             os.system(f"start {url}")
 
         def open_FAQ():
-            url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide"
+            url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/FAQ"
 
             # Open URL in default browser
             os.system(f"start {url}")
@@ -333,6 +333,7 @@ class App(customtkinter.CTk):
                 self.Manual_Scaling_Entry = customtkinter.CTkEntry(self.third_frame, fg_color="transparent", )
                 self.Manual_Scaling_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="n")
             elif choice == "Automatic Scaling":
+                #removed from grid insetad of deleted to prevent issues
                 self.Manual_Scaling_Label.grid_remove()
                 self.Manual_Scaling_Entry.grid_remove()
 
@@ -618,9 +619,9 @@ class App(customtkinter.CTk):
                                                             font=customtkinter.CTkFont(size=20, weight="bold"))
         self.Options_Scaling_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
 
-        # To show the default value of the optionmenu as "None" instead of "Manual Scaling" or "Yes"
-        Scaling_var = customtkinter.StringVar(value="None")
-        Charactergen_var = customtkinter.StringVar(value="None")
+        # To show the default value of optionmenu that don't cause issues
+        Scaling_var = customtkinter.StringVar(value="Automatic Scaling")
+        Charactergen_var = customtkinter.StringVar(value="Don't Generate Characters")
 
         self.Options_Scaling_Menu = customtkinter.CTkOptionMenu(self.third_frame, variable=Scaling_var,
                                                                 values=["Manual Scaling", "Automatic Scaling"],

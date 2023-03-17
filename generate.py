@@ -479,6 +479,8 @@ def runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, 
         cwd = mapfilldir
         modFiles.run_jar(jar_path, cwd)
 
+        print("Map Filler Complete")
+
         localization.religionLoc(output_dir)
 
 

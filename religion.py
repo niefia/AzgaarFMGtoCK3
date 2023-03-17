@@ -114,12 +114,12 @@ def religionGen(input_file_path,folder_path):
         first_word = name.split(" ")[0]
         value = row["origin"]
         reform = ["unreformed_faith_doctrine"]
-        paganroots = "no"
+        #paganroots = "no"
 
         if type == "Folk":
-            pagan_roots = "yes"
+            paganroots = "yes"
         else:
-            pagan_roots = "no"
+            paganroots = "no"
 
     # Loop through the rows of the DataFrame
     for index, row in df.iterrows():
@@ -132,7 +132,7 @@ def religionGen(input_file_path,folder_path):
         print(mainFamName)
         value = row["origin"]
         reform = ["unreformed_faith_doctrine"]
-        paganroots = "no"
+        #paganroots = "no"
         children = row["cName"]
         # Extract the values from the cName column as a list
         cName_list = row['cName'][1:-1].split(", ")
@@ -142,9 +142,11 @@ def religionGen(input_file_path,folder_path):
         children = cName_list
 
         if type == "Folk":
-            pagan_roots = "yes"
+            paganroots = "yes"
+            pagandoctrine = "doctrine = unreformed_faith_doctrine"
         else:
-            pagan_roots = "no"
+            paganroots = "no"
+
 
         # Check if the value in column i is 0
         if value == 0:
@@ -288,6 +290,7 @@ def religionGen(input_file_path,folder_path):
                            f"\n\t\tdoctrine = {tenet1}\n"
                            f"\n\t\tdoctrine = {tenet2}\n"
                            f"\n\t\tdoctrine = {tenet3}\n"
+                           f"\t\t{pagandoctrine}\n"
     
                            "\t\t}\n"
                            f"\n\t\t{full_text}\n"
