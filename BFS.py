@@ -205,6 +205,28 @@ def BaronyId(input_file, output_file):
     province_def.to_excel(output_file, index=False)
 
 
+import pandas as pd
+
+
+def BaronyIdBiomes(combined_data, cellsData, townbiomes):
+    # Open the Excel files
+    combined_data = pd.read_excel(combined_data, sheet_name='burgs')
+    cells_data = pd.read_excel(cellsData)
+
+    # Merge the two dataframes on the 'id' and 'cells' columns
+    merged_data = pd.merge(combined_data, cells_data[['id', 'biome', 'population']], left_on='cell', right_on='id')
+
+    # Add the 'biome' and 'population' columns to the 'burgs' sheet
+    combined_data['biome'] = merged_data['biome']
+    combined_data['population'] = merged_data['population']
+
+    # Save the updated data to townBiomes.csv
+    combined_data.to_csv(townbiomes, index=False)
+
+
+
+
+#BFS.BaronyId(os.path.join(output_dir, "combined_data.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
 
 
 def ProvData(updated_file_name, province_def_name, output_file_name):

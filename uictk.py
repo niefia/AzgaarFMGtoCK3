@@ -163,6 +163,39 @@ class App(customtkinter.CTk):
             "DontGenerate": "Ne Generáljon Karaktereket",
             "Restart to update": "Frissítéshez indítsa újra a programot!"
         }
+        POLISH = {
+            "mod_dir": "Folder z modami gry Crusader Kings III:",
+            "map_filler_dir": "Folder z wypełniaczem mapy (Map Filler Folder):",
+            "install_dir": "Pliki lokalne gry Crusader Kings III:",
+            "scaling_factor_label": "Wprowadź współczynik skalowania (Tylko dla skalowania manualnego):",
+            "mod_name": "Nazwa Moda",
+            "charGen": "Wygenerować postacie królewskie?",
+            "runConverter": "Włącz konwerter",
+            "scaling_method": "Wybierz metodę skalowania",
+            "manualScaling": "Skalowanie manualne",
+            "autoScaling": "Saklowanie automatyczne",
+            "yes": "tak",
+            "no": "nie",
+            "conversion": "Konwersja",
+            "home": "Strona główna",
+            "setup_frame_label": "Ścieżki i Konfiguracja",
+            "setup": "Konfiguracja",
+            "Options": "Opcje",
+            "Guide": "Poradnik",
+            "FAQ": "FAQ",
+            "PH_Installdir": "Ścieżkę instalacyjną Ck3 znajdziesz w: Steam>CK3>Properties>Local Files>Browse",
+            "PH_Modfolder": "C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "Folderm, w którym zainstalowałeś wypełniacz mpay (Map Filler Tool)",
+            "Select Scaling Method": "Wybierz metodę skalowania",
+            "Start Conversion": "Rozpocznij konwersję",
+            "Save Paths": "Zapisz ścieżki",
+            "Load Paths": "Wczytaj ścieżki",
+            "Generate Characters": "Generuj Postacie",
+            "DontGenerate": "Nie genreuj postaci",
+            "Restart to update": "Zrestartuj dla aktualizacji",
+
+        }
+
 
         LANGUAGE = ENGLISH
 
@@ -183,6 +216,9 @@ class App(customtkinter.CTk):
         elif language == 'HUNGARIAN':
             print("Langauge set to HUNGARIAN")
             LANGUAGE = HUNGARIAN
+        elif language == 'POLISH':
+            print("Language set to POLISH")
+            LANGUAGE = POLISH
         else:
             print('No language found, setting to English as backup')
             LANGUAGE = ENGLISH
@@ -264,6 +300,9 @@ class App(customtkinter.CTk):
                 generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.95)
+                generate.Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                                    CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.97)
                 self.status_label.configure(text="Generating Character + Bookmark if selected")
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
@@ -317,6 +356,12 @@ class App(customtkinter.CTk):
 
         def open_FAQ():
             url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/FAQ"
+
+            # Open URL in default browser
+            os.system(f"start {url}")
+
+        def open_convrules():
+            url = "https://github.com/niefia/AzgaarFMGtoCK3/wiki/Conversion-rules-reference"
 
             # Open URL in default browser
             os.system(f"start {url}")
@@ -383,7 +428,6 @@ class App(customtkinter.CTk):
 
         # Load Images
         # Images are loaded from the Image_Assets folder
-        # All Images are from the Icons8 Icon Library https://icons8.com/
         image_path = "Image_Assets/"
         self.home_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "home_light.png")),
                                                  dark_image=Image.open(os.path.join(image_path, "home_dark.png")),
@@ -465,7 +509,7 @@ class App(customtkinter.CTk):
         self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
 
         self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
-                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN"],
+                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN",'POLISH'],
                                                          command=update_language,
                                                          fg_color="#191919", button_color="#191919")
 
@@ -508,6 +552,19 @@ class App(customtkinter.CTk):
                                                           image=self.FAQ_Image,
                                                           command=open_FAQ)
         self.FAQ_website_button.grid(row=1, column=0, sticky="ew")
+
+
+        self.rules_website_button = customtkinter.CTkButton(self.home_frame, corner_radius=0, height=40,
+                                                          border_spacing=10,
+                                                          text="Conversion Rules",
+                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                          fg_color="transparent", text_color=text_color_template,
+                                                          hover_color=hover_color_template,
+                                                          anchor="w",
+                                                          image=self.FAQ_Image,
+                                                          command=open_convrules)
+        self.rules_website_button.grid(row=2, column=0, sticky="ew")
+
 
         # Setup Frame
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
