@@ -4,11 +4,15 @@ import numpy as np
 import sys
 
 # set scaling factor
-scaling_factor = float(sys.argv[1])
+scaling_factor = 30
 
 # print the scaling factor
-print(scaling_factor)
+print("Scaling factor: " + str(scaling_factor))
 
+#Constants for blue, greeen and magenta
+blue = (0, 0, 255)
+green = (0, 255, 0)
+magenta = (255, 0, 255)
 
 def paint_land_sea(heightmap_file, output_file):
     """Takes in a heightmap file, paints land white and sea magenta, outputs a PIL image object."""
@@ -77,7 +81,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
     img.save(output_file, "PNG")
 
 
-def draw_parent_rivers(landsea_image, rivers_geojson, output_file):
+def draw_mainstreams(landsea_image, rivers_geojson, output_file):
     """Implements the river-drawing algorithm, taking in a land-sea painted image and a river geojson file."""
 
     # load the painted land sea map
@@ -96,7 +100,7 @@ def draw_parent_rivers(landsea_image, rivers_geojson, output_file):
     rivers = data["features"]
 
     for river in rivers:
-        if river["properties"]["parent"] == 0:
+        if river["properties"]["parent"] == 0: #If the river is a mainstrem, then the parent will be 0
             flat_coords = np.array([item * scaling_factor for sublist in river["geometry"]["coordinates"]
                                     for item in sublist])
             centred_coords = flat_coords + np.tile([img_width / 2, img_height / 2], int(flat_coords.size / 2))
@@ -122,55 +126,66 @@ def draw_parent_rivers(landsea_image, rivers_geojson, output_file):
     img.save(output_file, "PNG")
 
 # Checks for Specific error where Multiple Blue pixels are around Green Source, replaces with White automatically
-def check_image(image_path):
+def correct_rivermap(image_path, output_file):
     # Load the image
-    image = Image.open(image_path)
-    # Get the pixel data
-    pixels = image.load()
-    # Loop through the pixels
-    for y in range(image.size[1]):
-        for x in range(image.size[0]):
-            # Check if the pixel is green
-            if pixels[x, y] == (0, 255, 0):
-                # Count the adjacent blue pixels
-                count = 0
-                adj_blues = []
-                if x > 0 and pixels[x-1, y] == (0, 0, 255):
-                    count += 1
-                    adj_blues.append((x-1, y))
-                if x < image.size[0]-1 and pixels[x+1, y] == (0, 0, 255):
-                    count += 1
-                    adj_blues.append((x+1, y))
-                if y > 0 and pixels[x, y-1] == (0, 0, 255):
-                    count += 1
-                    adj_blues.append((x, y-1))
-                if y < image.size[1]-1 and pixels[x, y+1] == (0, 0, 255):
-                    count += 1
-                    adj_blues.append((x, y+1))
-                # Check if the green pixel has more than one adjacent blue pixel
-                if count > 1:
-                    for bx, by in adj_blues:
-                        # Check if the blue pixel has only one adjacent blue pixel
-                        bcount = 0
-                        if bx > 0 and pixels[bx-1, by] == (0, 0, 255):
-                            bcount += 1
-                        if bx < image.size[0]-1 and pixels[bx+1, by] == (0, 0, 255):
-                            bcount += 1
-                        if by > 0 and pixels[bx, by-1] == (0, 0, 255):
-                            bcount += 1
-                        if by < image.size[1]-1 and pixels[bx, by+1] == (0, 0, 255):
-                            bcount += 1
-                        if bcount == 0:
-                            pixels[bx, by] = (255, 255, 255)
-                            image.putpixel((bx, by), (255, 255, 255))
-                            image.save('map_data/rivermap.png')
-                            print("replaced blue at ({}, {}) with white".format(bx, by))
-                            break
+    with Image.open(image_path) as image:
+        # Get the pixel data
+        pixels = image.load()
+        # Create a new image to write to
+        new_image = Image.new(image.mode, image.size, color=(255, 255, 255))
+        new_pixels = new_image.load()
+        # Loop through the pixels
+        for y in range(image.size[1]):
+            for x in range(image.size[0]):
+                # Check if the pixel is green
+                if pixels[x, y] == (0, 255, 0):
+                    # Count the adjacent blue pixels
+                    count = 0
+                    adj_blues = []
+                    if x > 0 and pixels[x-1, y] == (0, 0, 255):
+                        count += 1
+                        adj_blues.append((x-1, y))
+                    if x < image.size[0]-1 and pixels[x+1, y] == (0, 0, 255):
+                        count += 1
+                        adj_blues.append((x+1, y))
+                    if y > 0 and pixels[x, y-1] == (0, 0, 255):
+                        count += 1
+                        adj_blues.append((x, y-1))
+                    if y < image.size[1]-1 and pixels[x, y+1] == (0, 0, 255):
+                        count += 1
+                        adj_blues.append((x, y+1))
+                    # Check if the green pixel has more than one adjacent blue pixel
+                    if count > 1:
+                        for bx, by in adj_blues:
+                            # Check if the blue pixel has only one adjacent blue pixel
+                            bcount = 0
+                            if bx > 0 and pixels[bx-1, by] == (0, 0, 255):
+                                bcount += 1
+                            if bx < image.size[0]-1 and pixels[bx+1, by] == (0, 0, 255):
+                                bcount += 1
+                            if by > 0 and pixels[bx, by-1] == (0, 0, 255):
+                                bcount += 1
+                            if by < image.size[1]-1 and pixels[bx, by+1] == (0, 0, 255):
+                                bcount += 1
+                            if bcount == 0:
+                                # Replace the blue pixel with white
+                                new_pixels[bx, by] = (255, 255, 255)
+                                break
+                        else:
+                            print("Error at ({}, {})".format(x, y))
+                            # Copy the pixel from the original image
+                            new_pixels[x, y] = pixels[x, y]
                     else:
-                        print("error at ({}, {})".format(x, y))
+                        # Copy the pixel from the original image
+                        new_pixels[x, y] = pixels[x, y]
+                else:
+                    # Copy the pixel from the original image
+                    new_pixels[x, y] = pixels[x, y]
+        # Save the new image
+        new_image.save(output_file)
 
 #Use Landsea file as mask image as most Blue errors happen in sea, so can be masked anyway
-def mask_landsea(image_path, mask_path):
+def mask_landsea(image_path, mask_path, output_image_path):
     # Load the original image
     img = Image.open(image_path)
 
@@ -194,10 +209,10 @@ def mask_landsea(image_path, mask_path):
                 img.putpixel((x, y), (255, 0, 128, 0))
 
     # Save the modified image
-    img.save('map_data/masked_image.png', "PNG")
+    img.save(output_image_path)
 
 #Checks for error of more than 2 touching Blue pixels, Does not correct yet
-def check_image_blue(image_path):
+def check_image_for_more_than_two_blue(image_path):
     # Load the image
     image = Image.open(image_path)
     # Get the pixel data
@@ -223,12 +238,15 @@ def check_image_blue(image_path):
                     print("Error Blue pixel with more than 2 adjacent at ({}, {})".format(x, y), "Blue Pixel Error:",(bpc))
                     bpc += 1
 
-paint_land_sea("map_data/heightmap.png", "map_data/landsea.png")
 
-draw_parent_rivers("map_data/landsea.png", "rivers.geojson", "map_data/rivermap.png")
 
-check_image("map_data/rivermap.png")
+# Test Region of the code
 
-mask_landsea("map_data/rivermap.png", "map_data/landsea.png")
+#Path to folder containing heightmap.png, landsea.png, rivers.geojson when testing
+path = "River_Test/"
 
-check_image_blue("map_data/masked_image.png")
+paint_land_sea(path + "heightmap.png", path + "landsea.png")
+draw_mainstreams(path + "landsea.png", path + "rivers.geojson", path + "rivermap_mainstreams.png")
+correct_rivermap(path + "rivermap_mainstreams.png", path + "rivermap_corrected.png")
+mask_landsea(path + "rivermap_corrected.png", path + "landsea.png", path + "rivermap_masked.png")
+check_image_for_more_than_two_blue(path + "rivermap_masked.png")
