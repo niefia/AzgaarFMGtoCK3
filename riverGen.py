@@ -10,9 +10,9 @@ scaling_factor = 30
 print("Scaling factor: " + str(scaling_factor))
 
 #Constants for blue, greeen and magenta
-blue = (0, 0, 255)
-green = (0, 255, 0)
-magenta = (255, 0, 255)
+#blue = (0, 0, 255)
+#green = (0, 255, 0)
+#magenta = (255, 0, 255)
 
 def paint_land_sea(heightmap_file, output_file):
     """Takes in a heightmap file, paints land white and sea magenta, outputs a PIL image object."""
