@@ -7,7 +7,7 @@ Conversion tool to allow for Random Maps in Crusader Kings 3, by converting from
 
 
 Refer to the project wiki for guidance
-[Project wiki ](https://github.com/niefia/AzgaarFMGtoCK3/wiki/Official-Azgaar-to-CK3-Converter-Guide)
+[Project wiki ](https://github.com/niefia/AzgaarFMGtoCK3/wiki/Azgaar-to-CK3-Converter-Guide)
 
 
 
