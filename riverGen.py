@@ -5,7 +5,7 @@ import sys
 
 # set scaling factor
 scaling_factor = 30
-#scaling_factor = float(sys.argv[1])
+# scaling_factor = float(sys.argv[1])
 # print the scaling factor
 print("Scaling factor used is: " + str(scaling_factor))
 
@@ -106,18 +106,9 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                       "IndexError: pixel is outside image " + str(img.size) +
                       " so it was skipped")
 
-
             #Trim any pixels that are outside the image
             draw_coords = draw_coords[draw_coords[:, 0] < img_width]
             draw_coords = draw_coords[draw_coords[:, 1] < img_height]
-
-            #Print the draw coordinates to the console if debug is true
-        #    if debug:
-        #        print("The river have been determined to exist in the pixels: " + str(draw_coords))
-            # We have the river coloured in, but not saved to the map, so now we need to do some error checking first.
-
-            # Check if the last pixel in the river matches a magenta pixel on the original
-            # get the last pixel i the river
 
             #Check that the river is not empty
             if len(draw_coords) == 0:
@@ -127,20 +118,11 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 print("=============================================")
                 continue
 
+            # Remove cordinates that are above the ocean (except for some)
             last_pixel = draw_coords[-1]   #This is the last pixel in the river
-            print("Last pixel in river: " + str(last_pixel))
-            #Print image size to the console
-            print("Image size: " + str(img.size))
-            # If last pixle is outside the image. Show the image
-            if last_pixel[0] > img.size[0] or last_pixel[1] > img.size[1]:
 
-                raise ValueError("Last pixel in river is outside the image")
-
-            #is the last pixel in the river a magenta pixel?
+            # Is the last pixel in the river a magenta pixel? If yes then we need to trim it down a bit
             if img.getpixel((last_pixel[0], last_pixel[1])) == magenta:
-                finished_on_magenta = True
-
-                # Remove magenta pixels untill there are only a few left
                 # get the number of magenta pixels in the river, starting at the end of the river
                 magenta_pixel_count = 0
                 for pixel in reversed(draw_coords):
@@ -151,14 +133,15 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 # Remove all but a few magenta pixels from the end of the river
                 if magenta_pixel_count > offshore_runoff_pixel_length:
                     draw_coords = draw_coords[:-magenta_pixel_count + offshore_runoff_pixel_length]
-                    print("Removed " + str(magenta_pixel_count - offshore_runoff_pixel_length) + " magenta pixels from the end of the river.")
+                    print("Removed " + str(magenta_pixel_count - offshore_runoff_pixel_length) +
+                          " magenta pixels from the end of the river.")
 
             else:
-                finished_on_magenta = False
                 print("The river did not end on a magenta pixel, no need to remove any pixels from the river.")
 
 
-
+            #Check if we are drawing a over another river
+            # TODO: blue check
 
             # start_color = green  # beginning color is green for source river
             # Draw the river to the map
