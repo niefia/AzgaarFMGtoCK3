@@ -64,93 +64,110 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
     rivers = data["features"]
 
     print("Number of rivers: " + str(len(rivers)))
+    rivers_count = 0
     for river in rivers:
-        # We will process all rivers
-        if river["properties"]:
+        rivers_count += 1
+        # For debug so that we can easier undertand what is going on
+        # get river name
+        river_name = river["properties"]["name"]
+        #Get river type
+        river_type = river["properties"]["type"]
+        #Get river parent
+        river_parent = river["properties"]["parent"]
+        # Print the river name, type and parent ID to the console.
+        print("Drawing river: " + river_name + " of type " + river_type + " with parent ID " + str(river_parent))
+
+        flat_coords = np.array([item * scaling_factor for sublist in river["geometry"]["coordinates"]
+                                for item in sublist])
+        centred_coords = flat_coords + np.tile([img_width / 2, img_height / 2], int(flat_coords.size / 2))
+        centred_coords = centred_coords.reshape(int(len(centred_coords) / 2), 2)  # reshaping into 2-column array
+        draw_coords = np.floor(centred_coords[0]).reshape(1, 2)  # first coordinates to add
+
+        # Find the pixel coordinates of the river line
+        for row in range(1, centred_coords[1:].shape[0]):
+            new_coords = np.floor(centred_coords[row]).reshape(1, 2) # This is the 2d Array that holds the coordinates of the river line.
+            # Print the river coordinates to the console if debug is true
+            try:
+                #NOTE: new_coords can be outside the image, so we need to check for that
+              #  print("River coordinates: " + str(new_coords) +
+              #    #      " Existing pixel colour: " + str(img.getpixel((new_coords[0][0], new_coords[0][1]))))
+
+                if (np.abs(new_coords - draw_coords[-1]).sum(axis=1) >= 2)[0]:  # if both x and y coordinates jump
+                    jump_coord = np.argmin(np.abs(draw_coords[-1] - centred_coords[row]))  # the closest of x or y
+                    new_coords[0, jump_coord] = draw_coords[-1, jump_coord]
+                    draw_coords = np.append(draw_coords, new_coords, axis=0)
+                elif (np.abs(new_coords - draw_coords[-1]).sum(axis=1) == 1)[0]:  # at least one of x or y moves
+                    draw_coords = np.append(draw_coords, new_coords, axis=0)
+            except IndexError:
+                # If the pixel is outside the image, remove the coordinate from new_coords
+                print("River coordinates: " + str(new_coords),
+                  "IndexError: pixel is outside image " + str(img.size) +
+                  " so it was skipped")
+
+        #Trim any pixels that are outside the image
+        draw_coords = draw_coords[draw_coords[:, 0] < img_width]
+        draw_coords = draw_coords[draw_coords[:, 1] < img_height]
+
+        #Check that the river is not empty
+        if len(draw_coords) == 0:
+            # Print out an error message and continue to the next river
+            print("=============================================")
+            print("River is empty, skipping to next river")
+            print("=============================================")
+            continue
+
+        # Remove cordinates that are above the ocean (except for some)
+        last_pixel = draw_coords[-1]   #This is the last pixel in the river
+
+        # Is the last pixel in the river a magenta pixel? If yes then we need to trim it down a bit
+        if img.getpixel((last_pixel[0], last_pixel[1])) == magenta:
+            # get the number of magenta pixels in the river, starting at the end of the river
+            magenta_pixel_count = 0
+            for pixel in reversed(draw_coords):
+                if img.getpixel((pixel[0], pixel[1])) == magenta:
+                    magenta_pixel_count += 1
+                else:
+                    break
+            # Remove all but a few magenta pixels from the end of the river
+            if magenta_pixel_count > offshore_runoff_pixel_length:
+                draw_coords = draw_coords[:-magenta_pixel_count + offshore_runoff_pixel_length]
+                print("Removed " + str(magenta_pixel_count - offshore_runoff_pixel_length) +
+                      " magenta pixels from the end of the river.")
+
+        else:
+            print("The river did not end on a magenta pixel, no need to remove any pixels from the river.")
 
 
-            # For debug so that we can easier undertand what is going on
-            # get river name
-            river_name = river["properties"]["name"]
-            #Get river type
-            river_type = river["properties"]["type"]
-            #Get river parent
-            river_parent = river["properties"]["parent"]
-            # Print the river name, type and parent ID to the console.
-            print("Drawing river: " + river_name + " of type " + river_type + " with parent ID " + str(river_parent))
-
-            flat_coords = np.array([item * scaling_factor for sublist in river["geometry"]["coordinates"]
-                                    for item in sublist])
-            centred_coords = flat_coords + np.tile([img_width / 2, img_height / 2], int(flat_coords.size / 2))
-            centred_coords = centred_coords.reshape(int(len(centred_coords) / 2), 2)  # reshaping into 2-column array
-            draw_coords = np.floor(centred_coords[0]).reshape(1, 2)  # first coordinates to add
-
-            # Find the pixel coordinates of the river line
-            for row in range(1, centred_coords[1:].shape[0]):
-                new_coords = np.floor(centred_coords[row]).reshape(1, 2) # This is the 2d Array that holds the coordinates of the river line.
-                # Print the river coordinates to the console if debug is true
-                try:
-                    #NOTE: new_coords can be outside the image, so we need to check for that
-                    print("River coordinates: " + str(new_coords) +
-                            " Existing pixel colour: " + str(img.getpixel((new_coords[0][0], new_coords[0][1]))))
-
-                    if (np.abs(new_coords - draw_coords[-1]).sum(axis=1) >= 2)[0]:  # if both x and y coordinates jump
-                        jump_coord = np.argmin(np.abs(draw_coords[-1] - centred_coords[row]))  # the closest of x or y
-                        new_coords[0, jump_coord] = draw_coords[-1, jump_coord]
-                        draw_coords = np.append(draw_coords, new_coords, axis=0)
-                    elif (np.abs(new_coords - draw_coords[-1]).sum(axis=1) == 1)[0]:  # at least one of x or y moves
-                        draw_coords = np.append(draw_coords, new_coords, axis=0)
-                except IndexError:
-                    # If the pixel is outside the image, remove the coordinate from new_coords
-                    print("River coordinates: " + str(new_coords),
-                      "IndexError: pixel is outside image " + str(img.size) +
-                      " so it was skipped")
-
-            #Trim any pixels that are outside the image
-            draw_coords = draw_coords[draw_coords[:, 0] < img_width]
-            draw_coords = draw_coords[draw_coords[:, 1] < img_height]
-
-            #Check that the river is not empty
-            if len(draw_coords) == 0:
+        # Check if any of the coordinates would draw over another river
+        would_draw_over_another_river = False
+        for pixel in draw_coords:
+            if img.getpixel((pixel[0], pixel[1])) == blue:
                 # Print out an error message and continue to the next river
                 print("=============================================")
-                print("River is empty, skipping to next river")
+                print("The river " + river_name + "  would draw over another river, skipping to next river")
                 print("=============================================")
-                continue
-
-            # Remove cordinates that are above the ocean (except for some)
-            last_pixel = draw_coords[-1]   #This is the last pixel in the river
-
-            # Is the last pixel in the river a magenta pixel? If yes then we need to trim it down a bit
-            if img.getpixel((last_pixel[0], last_pixel[1])) == magenta:
-                # get the number of magenta pixels in the river, starting at the end of the river
-                magenta_pixel_count = 0
-                for pixel in reversed(draw_coords):
-                    if img.getpixel((pixel[0], pixel[1])) == magenta:
-                        magenta_pixel_count += 1
-                    else:
-                        break
-                # Remove all but a few magenta pixels from the end of the river
-                if magenta_pixel_count > offshore_runoff_pixel_length:
-                    draw_coords = draw_coords[:-magenta_pixel_count + offshore_runoff_pixel_length]
-                    print("Removed " + str(magenta_pixel_count - offshore_runoff_pixel_length) +
-                          " magenta pixels from the end of the river.")
-
-            else:
-                print("The river did not end on a magenta pixel, no need to remove any pixels from the river.")
+                would_draw_over_another_river = True
+                break
+        if would_draw_over_another_river:
+            #Print where in the for loop we are and what the total is
+            print("River " + str(rivers_count) + " of " + str(len(rivers)))
+            continue
 
 
-            #Check if we are drawing a over another river
-            # TODO: blue check
+        # start_color = green  # beginning color is green for source river
+        # Draw the river to the map
+        try:
+            draw.line(sum(draw_coords.tolist(), []), fill=blue)  # draw the river line
+        except:
+            print("Error: Pixel out of bounds")
+        # If the river has 0 as a parent id, then it is a source river
+        if river_parent == 0:
+            draw.point(draw_coords[0].tolist(), fill=green)  # Recolours the starting point of the river
+        else:
+        # If the river has a parent id, then it is a tributary. so we chaneg the last pixel to red
+            draw.point(draw_coords[-1].tolist(), fill=red)  # Recolours the end point of the river
 
-            # start_color = green  # beginning color is green for source river
-            # Draw the river to the map
-            try:
-                draw.line(sum(draw_coords.tolist(), []), fill=blue)  # draw the river line
-            except:
-                print("Error: Pixel out of bounds")
-            # draw.point(draw_coords[0].tolist(), fill=start_color)  # Recolours the starting point of the river
-            # TODO: Error checking the area around the river to make sure all pixels are valid
+        # TODO: Error checking the area around the river to make sure all pixels are valid
 
     # Break after first river when debugging
         #break   # Break after first river when debugging
