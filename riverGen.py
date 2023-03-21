@@ -80,8 +80,8 @@ def tributary_endpoint_is_valid(img, pixel):
                 is_valid = True
     return is_valid
 
-def get_neighboring_pixels(pixel_position):
-    '''Returns a list of neighboring pixels to the given pixel.'''
+def get_neighboring_pixels(pixel_position, img, maskedColors = None):
+    '''Returns a list of neighboring pixels to the given pixel, except if they are masked.'''
     neighboring_pixels = []
     # Check the pixel above
     neighboring_pixels.append((pixel_position[0], pixel_position[1] - 1))
@@ -91,7 +91,13 @@ def get_neighboring_pixels(pixel_position):
     neighboring_pixels.append((pixel_position[0] - 1, pixel_position[1]))
     # Check the pixel to the right
     neighboring_pixels.append((pixel_position[0] + 1, pixel_position[1]))
+
+    # Remove any pixels that are masked
+    for pixel in neighboring_pixels:
+        if img.getpixel(pixel) in maskedColors:
+            neighboring_pixels.remove(pixel)
     return neighboring_pixels
+
 
 def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
     '''Finds a valid pixel to pathfind to. Returns the pixel to pathfind to, or None if no valid pixel is found.'''
@@ -111,7 +117,7 @@ def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
         # If the queue is empty, get the neighboring pixels of the recently visited pixels and add them to the queue.
         if len(pixels_queue) == 0:
             for pixel in recently_visited_pixels:
-                pixels_queue += get_neighboring_pixels(pixel)
+                pixels_queue += get_neighboring_pixels(pixel, img, maskedColors=[blue, red, green])
             recently_visited_pixels = []
         # Get the next pixel in the queue
         pixel = pixels_queue.pop(0)
