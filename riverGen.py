@@ -69,36 +69,66 @@ def check_number_of_surrounding_color(img, pixel, color):
         pass
     return count
 
+def tributary_endpoint_is_valid(img, pixel):
+    # The criteria for a valid pixel:
+    # 1. a pixel must not border more than one blue pixel
+    # 2. a cannot border red or green pixels
+    is_valid = False
+    if check_number_of_surrounding_color(img, pixel, blue) <= 1:
+        if check_number_of_surrounding_color(img, pixel, red) == 0:
+            if check_number_of_surrounding_color(img, pixel, green) == 0:
+                is_valid = True
+    return is_valid
 
-def check_for_surrounding_color(img, pixel, color):
-    '''Checks the pixels around the given pixel for the given color. Returns the direction of the pixel if found, otherwise returns None.'''
-
-
+def get_neighboring_pixels(pixel_position):
+    '''Returns a list of neighboring pixels to the given pixel.'''
+    neighboring_pixels = []
     # Check the pixel above
-    try:
-        if img.getpixel((pixel[0], pixel[1] - 1)) == color:
-            return 0, -1
-    except IndexError:
-        pass
+    neighboring_pixels.append((pixel_position[0], pixel_position[1] - 1))
     # Check the pixel below
-    try:
-        if img.getpixel((pixel[0], pixel[1] + 1)) == color:
-            return 0, 1
-    except IndexError:
-        pass
+    neighboring_pixels.append((pixel_position[0], pixel_position[1] + 1))
     # Check the pixel to the left
-    try:
-        if img.getpixel((pixel[0] - 1, pixel[1])) == color:
-            return -1, 0
-    except IndexError:
-        pass
+    neighboring_pixels.append((pixel_position[0] - 1, pixel_position[1]))
     # Check the pixel to the right
-    try:
-        if img.getpixel((pixel[0] + 1, pixel[1])) == color:
-            return 1, 0
-    except IndexError:
-        pass
-    return None
+    neighboring_pixels.append((pixel_position[0] + 1, pixel_position[1]))
+    return neighboring_pixels
+
+def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
+    '''Finds a valid pixel to pathfind to. Returns the pixel to pathfind to, or None if no valid pixel is found.'''
+    # make list of visited pixels to avoid infinite loops
+    visited_pixels = []
+    recently_visited_pixels = []
+    pixels_queue = []
+    # Add the origin pixel to the queue
+    pixels_queue.append(origin_pixel)
+
+    valid_endpoint = None
+    # While the queue is not empty and a valid pixel has not been found
+    while len(pixels_queue) > 0 and valid_endpoint == None:
+        # Break if max number of pixels visited
+        if len(visited_pixels) > max_pixels_visited:
+            break
+        # If the queue is empty, get the neighboring pixels of the recently visited pixels and add them to the queue.
+        if len(pixels_queue) == 0:
+            for pixel in recently_visited_pixels:
+                pixels_queue += get_neighboring_pixels(pixel)
+            recently_visited_pixels = []
+        # Get the next pixel in the queue
+        pixel = pixels_queue.pop(0)
+        # If the pixel has not been visited
+        if pixel not in visited_pixels:
+            # Add the pixel to the recently visited pixels list
+            recently_visited_pixels.append(pixel)
+            # If the pixel is valid
+            if evaluate_tributary_endpoint(img, pixel):
+                # Set the valid pixel to the current pixel
+                valid_endpoint = pixel
+            # Add the pixel to the visited pixels list
+            visited_pixels.append(pixel)
+    # Return the valid pixel
+    return valid_endpoint
+
+
 
 
 
@@ -259,13 +289,16 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                     has_invalid_border = True
                     print("Still invalid borders, trying to fix it.")
                     break
-        # #   # If the river is a tributary, we must now make sure that it is connected to the source river in a valid way
-        #    if river_parent != 0:
-        #        # If the river is a tributary, we must now make sure that it is connected to the source river in a valid way
-        #        if check_number_of_surrounding_color(img, draw_coords[0], green) < 1:
-        #            not_connected_to_source_river = True
-        #            print("This tributary is not connected to the source river, trying to fix it.")
-        #            break
+        print("The river passed the border check.")
+
+        if river_parent != 0:
+            # If the river is a tributary, we must now make sure that it is connected to the source river in a valid way
+            if not tributary_endpoint_is_valid(img, draw_coords[-1]):
+                print("This tributary is not connected to the source river, trying to fix it.")
+                new_endpoint = pathfind_to_valid_pixel(img, draw_coords[-1])
+                # Find every pixel between the old endpoint and the new endpoint
+                pixels_to_add = find_pixels_between_points(draw_coords[-1], new_endpoint)
+
 
 
 
@@ -284,7 +317,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
         if river_parent == 0:
             draw.point(draw_coords[0].tolist(), fill=green)  # Recolours the starting point of the river
         else:
-        # If the river has a parent id, then it is a tributary. so we chaneg the last pixel to red
+        # If the river has a parent id, then it is a tributary. so we change the last pixel to red
             draw.point(draw_coords[-1].tolist(), fill=red)  # Recolours the end point of the river
 
         # TODO: Error checking the area around the river to make sure all pixels are valid
