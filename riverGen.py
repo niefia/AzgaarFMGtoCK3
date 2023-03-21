@@ -120,7 +120,7 @@ def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
             # Add the pixel to the recently visited pixels list
             recently_visited_pixels.append(pixel)
             # If the pixel is valid
-            if evaluate_tributary_endpoint(img, pixel):
+            if tributary_endpoint_is_valid(img, pixel):
                 # Set the valid pixel to the current pixel
                 valid_endpoint = pixel
             # Add the pixel to the visited pixels list
@@ -297,43 +297,32 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 print("This tributary is not connected to the source river, trying to fix it.")
                 new_endpoint = pathfind_to_valid_pixel(img, draw_coords[-1])
                 # Find every pixel between the old endpoint and the new endpoint
-                pixels_to_add = find_pixels_between_points(draw_coords[-1], new_endpoint)
+                # AKA pathfind from the old endpoint to the new endpoint
+                # TODO: Impement pathfinding
 
-
-
-
-
-        # start_color = green  # beginning color is green for source river
         # Draw the river to the map
         try:
             draw.line(sum(draw_coords.tolist(), []), fill=blue)  # draw the river line
-            # if the river is named "Fargo" then we will draw it in red
+            # if the river is named "Fargo" then we will draw it in orange
             if river_name == "Fargo":
                 draw.line(sum(draw_coords.tolist(), []), fill=(255, 165, 0)) #Orange DEBUG DEBUG DEBUG
-
         except:
             print("Error: Pixel out of bounds")
+
         # If the river has 0 as a parent id, then it is a source river
         if river_parent == 0:
             draw.point(draw_coords[0].tolist(), fill=green)  # Recolours the starting point of the river
         else:
-        # If the river has a parent id, then it is a tributary. so we change the last pixel to red
+        # If the river has a parent id, then it is a tributary. So we change the last pixel to red
             draw.point(draw_coords[-1].tolist(), fill=red)  # Recolours the end point of the river
 
         # TODO: Error checking the area around the river to make sure all pixels are valid
-
-    # Break after first river when debugging
-        #break   # Break after first river when debugging
 
 
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save(output_file, "PNG")
     #System open the image for debug purposes
     img.show()
-
-
-# Define a method that checks a pixel and surrounding pixels for a specific color. Returns true or false.
-
 
 
 
