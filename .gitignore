@@ -178,3 +178,7 @@ cython_debug/
 log.txt
 language.txt
 paths.txt
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/AzgaarFMGtoCK3.iml
+.idea/misc.xml
