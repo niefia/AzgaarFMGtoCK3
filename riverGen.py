@@ -1,4 +1,5 @@
 import json
+
 from PIL import Image, ImageDraw
 import numpy as np
 import sys
@@ -98,9 +99,79 @@ def get_neighboring_pixels(pixel_position, img, maskedColors = None):
             neighboring_pixels.remove(pixel)
     return neighboring_pixels
 
+class Node:
+    """A node class for A* Pathfinding"""
+    def __init__(self, pixel, parent, g, h):
+        self.pixel = pixel
+        self.parent = parent # Parent node is the current node's shortest path predecessor
+        self.g = g # g is the cost of the path from the start node to this node
+        self.h = h # h is the estimated cost of the path from this node to the goal node
+        self.f = g + h # f is the sum of g and h and is used to determine the next node to visit
 
-def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
-    '''Finds a valid pixel to pathfind to. Returns the pixel to pathfind to, or None if no valid pixel is found.'''
+    def __lt__(self, other):   # Overload the less than operator
+        return self.f < other.f
+
+    def __eq__(self, other): # Overload the equals operator
+        return self.pixel == other.pixel
+
+
+# Pathfind from a to b, return a list of pixels
+def pathfind(img, origin_pixel, destination_pixel, max_pixels_visited=10000):
+    """Pathfinds from the origin pixel to the destination pixel, returns a list of pixels.
+    Throws an exception if no path is found."""
+
+    open_nodes = []
+    closed_nodes = []
+    # Add the origin pixel to the open nodes list
+    open_nodes.append(Node(origin_pixel, None, 0, 0))
+    current_node = None
+    # While true
+    while True:
+        # Throw a max number of pixels visited exception
+        if len(open_nodes) + len(closed_nodes) > max_pixels_visited:
+            raise Exception("Max number of pixels visited during pathfinding.")
+        # Throw an exception if there are no more nodes to visit
+        if len(open_nodes) == 0:
+            raise Exception("No more nodes to visit and could not find a path")
+        # Get the node with the lowest f value
+        current_node = open_nodes.pop(0)
+        # Add the current node to the closed nodes list
+        closed_nodes.append(current_node)
+        # If the current node is the destination node, break
+        if current_node.pixel == destination_pixel:
+            break
+        # Get the neighboring pixels
+        neighboring_pixels = get_neighboring_pixels(current_node.pixel, img, [blue, red, green])
+        # For each neighboring pixel
+        for pixel in neighboring_pixels:
+            # Create a node for the pix, calculate the h value to be the sum of teh x and y distance to the destination.
+            # Using the Manhattan distance, encourages the pathfinder to move in a diagonal direction.
+            neighbour = Node(pixel, current_node, current_node.g + 1, abs(pixel[0] - destination_pixel[0]) + abs(pixel[1] - destination_pixel[1]))
+            # If the node is in the closed nodes list, skip it
+            if neighbour in closed_nodes:
+                continue
+            # If the node is not in the open nodes list, add it
+            if neighbour not in open_nodes:
+                open_nodes.append(neighbour)
+            # Update the g value of the node if the new g value is lower
+            elif neighbour.g > current_node.g + 1:
+                neighbour.g = current_node.g + 1
+                neighbour.parent = current_node
+
+        # Sort the open nodes list on f value, and if f values are equal, sort on h value
+        open_nodes.sort(key=lambda x: (x.f, x.h))
+
+    shortest_path = []
+    # Start at the destination node and work backwards to the origin node
+    while current_node is not None:
+        shortest_path.append(current_node.pixel)
+        current_node = current_node.parent
+    # invert the list - when traversing the parent nodes, the path is in reverse order
+    return shortest_path[::-1]
+
+def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_pixels_visited=10000):
+    '''Uses a fill algorithm to look for the closest valid pixel to attach a river to.
+    Returns the pixel to pathfind to, or None if no valid pixel is found.'''
     # make list of visited pixels to avoid infinite loops
     visited_pixels = []
     recently_visited_pixels = []
@@ -110,33 +181,41 @@ def pathfind_to_valid_pixel(img, origin_pixel, max_pixels_visited=10000):
 
     valid_endpoint = None
     # While the queue is not empty and a valid pixel has not been found
-    while len(pixels_queue) > 0 and valid_endpoint == None:
-        # Break if max number of pixels visited
+    while True:
+        # Throw a max number of pixels visited exception, include the current max_pixels_visited value
         if len(visited_pixels) > max_pixels_visited:
-            break
+            raise Exception("Max number of pixels visited during pathfinding. Max pixels visited: " + str(max_pixels_visited))
+
         # If the queue is empty, get the neighboring pixels of the recently visited pixels and add them to the queue.
         if len(pixels_queue) == 0:
             for pixel in recently_visited_pixels:
                 pixels_queue += get_neighboring_pixels(pixel, img, maskedColors=[blue, red, green])
             recently_visited_pixels = []
+        # Throw an exception if there are no more pixels to visit, print the number of pixels visited
+        if len(pixels_queue) == 0:
+            raise Exception("No more pixels to evaluate and could not find a valid pixel to attach river to. Pixels visited: " + str(len(visited_pixels)))
+
         # Get the next pixel in the queue
         pixel = pixels_queue.pop(0)
         # If the pixel has not been visited
-        if pixel not in visited_pixels:
+        if not np.isin(pixel, visited_pixels).any():
             # Add the pixel to the recently visited pixels list
             recently_visited_pixels.append(pixel)
             # If the pixel is valid
             if tributary_endpoint_is_valid(img, pixel):
                 # Set the valid pixel to the current pixel
                 valid_endpoint = pixel
+                break
             # Add the pixel to the visited pixels list
             visited_pixels.append(pixel)
+        else:
+            print("Pixel already visited: " + str(pixel))
+    # Throw an exception if no valid pixel was found
+    if valid_endpoint is None:
+        raise Exception("No valid pixel found to attach river to.")
+
     # Return the valid pixel
     return valid_endpoint
-
-
-
-
 
 
 
@@ -301,9 +380,14 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
             # If the river is a tributary, we must now make sure that it is connected to the source river in a valid way
             if not tributary_endpoint_is_valid(img, draw_coords[-1]):
                 print("This tributary is not connected to the source river, trying to fix it.")
-                new_endpoint = pathfind_to_valid_pixel(img, draw_coords[-1])
-                # Find every pixel between the old endpoint and the new endpoint
-                # AKA pathfind from the old endpoint to the new endpoint
+                new_endpoint = search_for_valid_pixel_to_attach_river(img, draw_coords[-1])[0]
+                # Calulate the manhattan distance between the old and new endpoint
+                distance = abs(new_endpoint[0] - draw_coords[-1][0]) + abs(new_endpoint[1] - draw_coords[-1][1])
+                # Print out the position of the new endpoint and the distance between the old and new endpoint
+                print("Found a new endpoint at " + str(new_endpoint) +
+                        " which is " + str(distance) + " pixels away from the old endpoint.")
+
+
                 # TODO: Impement pathfinding
 
         # Draw the river to the map
