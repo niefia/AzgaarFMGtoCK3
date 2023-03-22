@@ -86,6 +86,12 @@ def runGenUI(modpath, mapfilldir, installdir, scaling_method, scaling_factor, mo
                                    os.path.join(output_dir, "updated_file.xlsx"))
         print("Geojson data updated with Json names")
 
+        spreadsheets.combined_data_empires(os.path.join(output_dir, "combined_data.xlsx"))
+        print("Applied Vassal/Suzerain relationships to combined data")
+
+        spreadsheets.combined_data_empires_id_to_name(os.path.join(output_dir, "combined_data.xlsx"))
+        print("Applied Name to Vassal/Suzerain ID relationships to combined data")
+
         # Generate ProvinceDef.xlsx file for Cells
         spreadsheets.provinceDefCells(os.path.join(output_dir, "updated_file.xlsx"),
                                       os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
@@ -460,9 +466,15 @@ def runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, m
         BFS.cOrder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
         BFS.finalorder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
         BFS.convert_xlsx_to_xls(os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xls"))
+        spreadsheets.combined_data_empires(os.path.join(output_dir, "combined_data.xlsx"))
+        print("Applied Vassal/Suzerain relationships to combined data")
 
+        spreadsheets.combined_data_empires_id_to_name(os.path.join(output_dir, "combined_data.xlsx"))
+        print("Applied Name to Vassal/Suzerain ID relationships to combined data")
+        spreadsheets.update_provincedef_empires_vassalsuzerain(os.path.join(output_dir, "combined_data.xlsx"),
+                                                               os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
 
-
+        BFS.convert_xlsx_to_xls(os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xls"))
 
 
 def runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
@@ -487,6 +499,7 @@ def runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, 
 def Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
     BFS.BaronyIdBiomes(os.path.join(output_dir, "combined_data.xlsx"),os.path.join(output_dir, "cellsData.xlsx"),os.path.join(output_dir, "townBiomes.csv"))
     spreadsheets.terrainGenIdtoName(os.path.join(output_dir, 'townBiomes.csv'), os.path.join(output_dir, 'biomes.xlsx'))
+    spreadsheets.terrainGenRGB(os.path.join(output_dir, 'townBiomes.csv'), (os.path.join(output_dir, '_mapFiller/provinceDef.xlsx')))
     spreadsheets.terrainGen(os.path.join(output_dir, 'townBiomes.csv'), (os.path.join(output_dir, 'common/province_terrain/00_province_terrain.txt')))
 
 

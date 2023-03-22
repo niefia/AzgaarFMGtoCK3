@@ -58,6 +58,7 @@ def json_to_sheet(input_file_path, output_file_path):
         row = {
             "i": cell["i"],
             "name": cell["name"],
+            "diplomacy": cell["diplomacy"],
         }
         states_rows.append(row)
 
@@ -157,7 +158,7 @@ def json_to_sheet(input_file_path, output_file_path):
     burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
     # Create data frames from the lists of dictionaries
-    states_df = pd.DataFrame(states_rows, columns=["i", "name"])
+    states_df = pd.DataFrame(states_rows, columns=["i", "name","diplomacy"])
     provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
     cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name","type","origin"])
     religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center","origin"])
@@ -172,6 +173,99 @@ def json_to_sheet(input_file_path, output_file_path):
         burgs_df.to_excel(writer, sheet_name="burgs", index=False)
 
 #json_to_sheet('noemoji.json','ouput.xlsx')
+
+def combined_data_empires(combined_data):
+    # Load the workbook
+    workbook = openpyxl.load_workbook(combined_data)
+
+    # Select the sheet to work with
+    sheet = workbook['states']
+
+    # Add new columns for Suzerain and Vassals
+    sheet.cell(row=1, column=4, value="Suzerain of")
+    sheet.cell(row=1, column=5, value="Vassals of")
+
+    # Extract the column of diplomacy values and save Suzerain and Vassal indices
+    for i, cell in enumerate(sheet['C'][1:], start=2):
+        value = cell.value
+        if isinstance(value, str) and 'Suzerain' in value:
+            indices = [j for j, x in enumerate(eval(value)) if x == 'Suzerain']
+            sheet.cell(row=i, column=4, value=str(indices))
+        elif isinstance(value, str):
+            sheet.cell(row=i, column=4, value="[]")
+        else:
+            sheet.cell(row=i, column=4, value=None)
+
+        if isinstance(value, str) and 'Vassal' in value:
+            indices = [j for j, x in enumerate(eval(value)) if x == 'Vassal']
+            sheet.cell(row=i, column=5, value=str(indices))
+        elif isinstance(value, str):
+            sheet.cell(row=i, column=5, value="[]")
+        else:
+            sheet.cell(row=i, column=5, value=None)
+
+    # Save the updated workbook
+    workbook.save(combined_data)
+
+
+#combined_data_empires("combined_data.xlsx")
+
+
+def combined_data_empires_id_to_name(combined_data):
+    # Read the Excel file
+    file_path = combined_data
+    wb = openpyxl.load_workbook(file_path)
+
+    # Select the 'states' sheet
+    ws = wb['states']
+
+    # Create a new column for the emperor names
+    ws.insert_cols(6)
+    ws.cell(row=1, column=6).value = 'emperor'
+
+    # Iterate through each row in the worksheet
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        # Check if the vassal id is not empty
+        if row[4] != '[]' and row[4] is not None:
+            # Extract the vassal id number
+            vassal_id = int(row[4].strip('[]'))
+
+            # Find any matching rows in the worksheet
+            for match_row in ws.iter_rows(min_row=2, min_col=1, max_col=2, values_only=True):
+                if match_row[0] == vassal_id:
+                    # Update the emperor name
+                    ws.cell(row=row[0] + 2, column=6).value = match_row[1]
+                    break
+
+    # Save the changes to the same file
+    wb.save(file_path)
+
+#combined_data_empires_id_to_name("combined_data.xlsx")
+
+
+def update_provincedef_empires_vassalsuzerain(combined_data,provinceDef):
+
+    # Open the input file and select the "states" sheet
+    input_file = openpyxl.load_workbook(combined_data)
+    states_sheet = input_file["states"]
+
+    # Open the output file and select the "provinceDef" sheet
+    output_file = openpyxl.load_workbook(provinceDef)
+    provinceDef_sheet = output_file["Sheet1"]
+
+    # Loop through each row in the "states" sheet and check if the "emperor" column is not empty
+    for row in states_sheet.iter_rows(min_row=2, values_only=True):
+        emperor = row[5]
+        if emperor:
+            name = row[1]
+            # Replace any instance of the name value with the emperor value in the 9th column of the "provinceDef" sheet
+            for cell in provinceDef_sheet["I"]:
+                if cell.value == name:
+                    cell.value = emperor
+
+    # Save the changes to the output file
+    output_file.save(provinceDef)
+
 
 
 #export the cells geojson data to spreadsheet. previously xlsoutput.py
@@ -335,8 +429,20 @@ def terrainGenIdtoName(cells_path, biomes_path):
     output_path = cells_path
     cells_df.to_csv(output_path, index=False)
 
+def terrainGenRGB(townBiomes, provinceDef):
+    # Load the CSV file into a DataFrame
+    town_biomes = pd.read_csv(townBiomes)
 
+    # Load the Excel file into a DataFrame and select only the RGB columns
+    province_def = pd.read_excel(provinceDef, usecols=['R', 'G', 'B'])
 
+    # Add new columns with the RGB values from province_def
+    merged = town_biomes.merge(province_def, left_on='i', right_index=True, how='left')
+
+    # Save the updated DataFrame back to the CSV file
+    merged.to_csv(townBiomes, index=False)
+
+#terrainGenRGB('townBiomes.csv','_mapFiller/provinceDef.xlsx')
 
 def terrainGen(cellsData,provinceTerraintxt):
     import pandas as pd
@@ -361,37 +467,34 @@ def terrainGen(cellsData,provinceTerraintxt):
             'tundra': 0.1
         },
         'Savanna': {
-            'plains': 0.6,
-            'hills': 0.3,
-            'steppe': 0.1
+            'drylands': 1.0
         },
         'Grassland': {
-            'steppe': 0.9,
-            'hills': 0.1
+            'steppe': 1.0
         },
         'Tropical seasonal forest': {
-            'jungle': 0.4,
-            'plains': 0.4,
-            'hills': 0.2
+            'jungle': 0.85,
+            'plains': 0.10,
+            'hills': 0.05
         },
         'Temperate deciduous forest': {
-            'forest': 0.6,
-            'hills': 0.4
+            'forest': 0.9,
+            'hills': 0.1
         },
         'Tropical rainforest': {
             'jungle': 1.0
         },
         'Temperate rainforest': {
-            'forest': 0.7,
-            'hills': 0.3
+            'forest': 0.9,
+            'hills': 0.1
         },
         'Taiga': {
-            'taiga': 0.8,
-            'hills': 0.2
+            'taiga': 0.9,
+            'hills': 0.1
         },
         'Tundra': {
-            'tundra': 0.8,
-            'hills': 0.2
+            'tundra': 0.9,
+            'hills': 0.1
         },
         'Glacier': {
             'mountains': 1.0
@@ -410,9 +513,9 @@ def terrainGen(cellsData,provinceTerraintxt):
         terrain_weights = biome_terrain_map[biome]
 
         # check for population and override terrain for Temperate deciduous forest biomes
-        if biome == 'Temperate deciduous forest' and row['population'] > 35000:
+        if biome == 'Temperate deciduous forest' and row['population'] > 40000:
             assigned_terrain = 'farmlands'
-        elif biome == 'Hot Desert' and row['population'] > 35000:
+        elif biome == 'Hot Desert' and row['population'] > 40000:
             assigned_terrain = 'floodplains'
         else:
             assigned_terrain = random.choices(list(terrain_weights.keys()), weights=list(terrain_weights.values()))[0]
@@ -423,7 +526,8 @@ def terrainGen(cellsData,provinceTerraintxt):
     with open(provinceTerraintxt, 'w') as f:
         f.write('\n'.join(terrain_list))
 
-
+from PIL import Image
+import csv
 
 
 #remove_emoji_from_json("emoji.json", "noemoji.json")
