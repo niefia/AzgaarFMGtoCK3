@@ -198,7 +198,8 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_pixels_visited
         # Get the next pixel in the queue
         pixel = pixels_queue.pop(0)
         # If the pixel has not been visited
-        if not np.isin(pixel, visited_pixels).any():
+        print(visited_pixels)
+        if pixel not in visited_pixels:
             # Add the pixel to the recently visited pixels list
             recently_visited_pixels.append(pixel)
             # If the pixel is valid
