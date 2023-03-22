@@ -174,6 +174,7 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_pixels_visited
     Returns the pixel to pathfind to, or None if no valid pixel is found.'''
     # make list of visited pixels to avoid infinite loops
     visited_pixels = []
+    visited_pixels.append(origin_pixel)
     recently_visited_pixels = []
     pixels_queue = []
     # Add the origin pixel to the queue
