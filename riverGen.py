@@ -134,7 +134,9 @@ class Node:
         return self.f < other.f
 
     def __eq__(self, other):  # Overload the equals operator
-        return self.pixel == other.pixel
+        # Check if the pixel value for both nodes is the same
+        is_equal = self.pixel[0] == other.pixel[0] and self.pixel[1] == other.pixel[1]
+        return is_equal
 
 
 # Custom ExceptionClass for when a path is not found
@@ -254,13 +256,6 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_search_distanc
     distance = 0
     # While the queue is not empty and a valid pixel has not been found
     while True:
-        # Print loop information
-   #     print("----- Loop info ------")
-  #      print("Queue length: " + str(len(pixels_queue)))
-   #     print("Visited pixels length: " + str(len(visited_pixels)))
-   #     print("Recently visited pixels length: " + str(len(recently_visited_pixels)))
-   #     print("---------------------")
-
         # Print a warning if the visited pixels list is getting too long
         if distance == max_search_distance * 0.5:
             print("Warning: Visited pixels list is getting long. Length: " + str(len(visited_pixels)))
@@ -284,8 +279,6 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_search_distanc
 
         # Get the next pixel in the queue
         pixel = pixels_queue.pop(0)
-
-#
 
         # Determine that the pixel is not in the visited pixels list
         pixel_is_in_visited_pixels = False
@@ -367,8 +360,8 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
 
         # Find the pixel coordinates of the river line
         for row in range(1, centred_coords[1:].shape[0]):
-            new_coords = np.floor(centred_coords[row]).reshape(1,
-                                                               2)  # This is the 2d Array that holds the coordinates of the river line.
+            # This is the 2d Array that holds the coordinates of the river line.
+            new_coords = np.floor(centred_coords[row]).reshape(1, 2)
             # Print the river coordinates to the console if debug is true
             try:
                 if (np.abs(new_coords - draw_coords[-1]).sum(axis=1) >= 2)[0]:  # if both x and y coordinates jump
@@ -383,9 +376,15 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                       "IndexError: pixel is outside image " + str(img.size) +
                       " so it was skipped")
 
+        # Print info about the river to the console
+        print("Literal conversion of river coordinates to pixels gave " + str(len(draw_coords)) + " pixels")
+
+
         # Trim any pixels that are outside the image
         draw_coords = draw_coords[draw_coords[:, 0] < img_width]
         draw_coords = draw_coords[draw_coords[:, 1] < img_height]
+
+        print("Trimming pixels outside the image gave " + str(len(draw_coords)) + " pixels")
 
         # Check that the river is not empty
         if len(draw_coords) == 0:
@@ -492,7 +491,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 try:
                     new_endpoint = search_for_valid_pixel_to_attach_river(img, draw_coords[-1])
                 except PathNotFoundException:
-                    print("Could not find a valid pixel to attach the river to, skipping to next river")
+                    print("Could not find a valid pixel to attach the tributary to, skipping to next river")
                     print("=============================================")
                     break
 
@@ -503,23 +502,31 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 if new_endpoint is None:
                     print("Could not find a valid pixel to attach the river to, skipping to next river")
                     print("=============================================")
-                    # TODO: When a river is skipped, it shoudl be added to a list of skipped rivers, so that we can
+                    # TODO: When a river is skipped, it should be added to a list of skipped rivers, so that we can
                     #       try to fix them after other rivers have been drawn.
                     break
                 # If we found a valid pixel to attach the river to, then we will path to it
                 else:
                     # Path to the new endpoint
-                    #    draw_coords = pathfind_from_b_to_b(img, draw_coords[-1], new_endpoint)
+                    path = pathfind_from_b_to_b(img, draw_coords[-1], new_endpoint)
+                    # Add the path to the river
+                    draw_coords = np.concatenate((draw_coords, path))
                     print("Pathfound to the new endpoint successfully.")
 
         # Draw the river to the map
         try:
             draw.line(sum(draw_coords.tolist(), []), fill=blue)  # draw the river line
-            # if the river is named "Fargo" then we will draw it in orange
-        #  if river_name == "Fargo":#
-        #      draw.line(sum(draw_coords.tolist(), []), fill=(255, 165, 0)) #Orange DEBUG DEBUG DEBUG
         except:
-            print("Error: Pixel out of bounds")
+            # The draw.line function will throw an error if the river is too short
+            # If the river is too short, then we will skip it
+            print("The river " + river_name + " is too short (1 pixel), skipping to next river")
+            print("=============================================")
+
+
+
+
+
+
 
         # If the river has 0 as a parent id, then it is a source river
         if river_parent == 0:
