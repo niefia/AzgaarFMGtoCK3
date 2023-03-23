@@ -74,6 +74,17 @@ def check_number_of_surrounding_color(img, pixel, color):
         pass
     return count
 
+def check_if_valid_border(img, pixel):
+    """Checks if a river pixel at the position would violate the rules of the river system."""
+    # Check sourounding pixels for blue
+    # If there is a blue, green or red pixel, return false
+    is_valid = False
+    if check_number_of_surrounding_color(img, pixel, blue) == 0:
+        if check_number_of_surrounding_color(img, pixel, red) == 0:
+            if check_number_of_surrounding_color(img, pixel, green) == 0:
+                is_valid = True
+    return is_valid
+
 
 def tributary_endpoint_is_valid(img, pixel):
     # The criteria for a valid pixel:
@@ -179,6 +190,27 @@ def paint_and_show_explored_pixels(img, center_pixel, explored_pixels, endpoint_
     # Show the image
     img_copy.show()
 
+def paint_and_show_river(img, river_pixels, colour = orange):
+    """Paints the river pixels and shows the image."""
+
+    # Make a copy of the image
+    img_copy = img.copy()
+    # Get a drawing object
+    draw = ImageDraw.Draw(img_copy)
+
+    #Highlight the region by drawing a thick red box around the river
+    draw.rectangle((river_pixels[0][0] - 30, river_pixels[0][1] - 30, river_pixels[-1][0] + 30, river_pixels[-1][1] + 30),
+                     outline=red, width=5)
+
+    # Draw the river pixels
+    for pixel in river_pixels:
+        draw.point((pixel[0],pixel[1]), fill=colour)
+
+    # Flip the image
+    img_copy = img_copy.transpose(Image.FLIP_TOP_BOTTOM)
+    # Show the image
+    img_copy.show()
+
 
 # Pathfind from a to b, return a list of pixels
 def pathfind_from_b_to_b(img, origin_pixel, destination_pixel, max_pixels_visited=10000):
@@ -207,6 +239,10 @@ def pathfind_from_b_to_b(img, origin_pixel, destination_pixel, max_pixels_visite
             break
         # Get the neighboring pixels
         neighboring_pixels = get_neighboring_pixels(current_node.pixel, img, [blue, red, green])
+        # Remove pixels that violate border rules
+        for pixel in neighboring_pixels:
+            if check_number_of_surrounding_color(img, pixel, blue) > 1:
+                neighboring_pixels.remove(pixel)
         # For each neighboring pixel
         for pixel in neighboring_pixels:
             # Create a node for the pix, calculate the h value to be the sum of teh x and y distance to the destination.
@@ -450,26 +486,27 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
         # then we will start subtracting pixels from the end of the river
         # until we have a valid river
         has_invalid_border = False
-        for pixel in draw_coords:
-            if check_number_of_surrounding_color(img, pixel, blue) > 1:
+        for pixel in draw_coords: #TODO: Reverse the order of the pixels, the issue is more likely to be at the start of the river
+            if not check_if_valid_border(img, pixel):
                 has_invalid_border = True
                 print("The river " + river_name + " has an invalid border, trying to fix it.")
                 break
         while has_invalid_border:
             # Remove the last pixel from the river
+            draw_coords = draw_coords[:-1]
             # if this was the last pixel in the river, then we will abort this river
-            if len(draw_coords) < 1:
+            if len(draw_coords) == 1:
                 print("Could not fix the river border, skipping to next river")
                 print("=============================================")
                 break
-            # Remove the last pixel from the river
-            draw_coords = draw_coords[:-1]
             # Check if the river is now valid
             has_invalid_border = False
             for pixel in draw_coords:
-                if check_number_of_surrounding_color(img, pixel, blue) > 1:
+                if not check_if_valid_border(img, pixel):
                     has_invalid_border = True
                     print("Still invalid borders, trying to fix it.")
+                    if river_name == "Fargo":
+                        paint_and_show_river(img, draw_coords, orange)
                     break
         print("The river passed the border check.")
 
