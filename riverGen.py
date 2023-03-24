@@ -126,8 +126,11 @@ def get_neighboring_pixels(pixel_position, img, maskedColors=None):
 
     # Remove any pixels that are masked
     for pixel in neighboring_pixels:
-        if img.getpixel(pixel) in maskedColors:
-            neighboring_pixels.remove(pixel)
+        try:
+            if img.getpixel(pixel) in maskedColors:
+                neighboring_pixels.remove(pixel)
+        except IndexError:
+            pass
     return neighboring_pixels
 
 
@@ -211,9 +214,56 @@ def paint_and_show_river(img, river_pixels, colour = orange):
     # Show the image
     img_copy.show()
 
+def draw_small_river_image(river_pixels):
+    min_x = int(np.min(river_pixels[:, 0]))
+    max_x = int(np.max(river_pixels[:, 0]))
+    min_y = int(np.min(river_pixels[:, 1]))
+    max_y = int(np.max(river_pixels[:, 1]))
+
+    # Create a new image that is the max_x and max y in size
+    padding = 4
+    river_img = Image.new("RGB", (max_x - min_x + padding, max_y - min_y + padding), color=white)
+    # Copy the draw_coords to a new array.
+    self_check_coords = river_pixels.copy()
+    # Offset the coordinates so that they are relative to the river_img + padding
+    self_check_coords[:, 0] -= min_x - padding / 2
+    self_check_coords[:, 1] -= min_y - padding / 2
+
+    # Draw the river to the river_img
+    draw = ImageDraw.Draw(river_img)
+    for pixel in self_check_coords:
+        draw.point((pixel[0], pixel[1]), fill=blue)
+    # Return the image and the self_check_coords
+    return river_img, self_check_coords
+
+def pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel):
+    """
+    Paints the path pixels and shows the image.
+    red: origin pixel
+    Orange: closed nodes
+    purple: valid endpoint pixel
+    """
+
+    # Make a copy of the image
+    img_copy = img.copy()
+    # Get a drawing object
+    draw = ImageDraw.Draw(img_copy)
+
+    # Draw origin and destination nodes
+    draw.point((origin_pixel[0], origin_pixel[1]), fill=red)
+    draw.point((destination_pixel[0] , destination_pixel[1]), fill=purple)
+
+    # Draw the closed nodes (Nodes visited
+    for node in closed_nodes:
+        draw.point(node.pixel, fill=orange)
+
+    # Flip the image
+    img_copy = img_copy.transpose(Image.FLIP_TOP_BOTTOM)
+    # Show the image
+    img_copy.show()
 
 # Pathfind from a to b, return a list of pixels
-def pathfind_from_b_to_b(img, origin_pixel, destination_pixel, max_pixels_visited=10000):
+def pathfind_from_a_to_b(img, origin_pixel, destination_pixel, max_pixels_visited=10000):
     """Pathfinds from the origin pixel to the destination pixel, returns a list of pixels.
     Throws an exception if no path is found."""
 
@@ -226,9 +276,11 @@ def pathfind_from_b_to_b(img, origin_pixel, destination_pixel, max_pixels_visite
     while True:
         # Throw a max number of pixels visited exception
         if len(open_nodes) + len(closed_nodes) > max_pixels_visited:
+            pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
             raise PathNotFoundException("Max number of pixels visited during pathfinding.")
         # Throw an exception if there are no more nodes to visit
         if len(open_nodes) == 0:
+            pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
             raise PathNotFoundException("No more nodes to visit and could not find a path")
         # Get the node with the lowest f value
         current_node = open_nodes.pop(0)
@@ -345,6 +397,88 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_search_distanc
 
     # Return the valid pixel
     return valid_endpoint
+
+
+def detect_and_fix_1_wide_gap(self_check_img, gap):
+    x_variance = abs(gap[0][0] - gap[1][0])
+    y_variance = abs(gap[0][1] - gap[1][1])
+    if x_variance + y_variance > 1:
+        # If x_variance is 2, then we are dealing with a orthogonal gap
+        if x_variance == 2:
+            # If the gap is going right, then we will add a pixel to the right
+            if gap[0][0] < gap[1][0]:
+                gap = (gap[0], (gap[1][0] - 1, gap[1][1]))
+            # If the gap is going left, then we will add a pixel to the left
+            else:
+                gap = (gap[0], (gap[1][0] + 1, gap[1][1]))
+        # If y_variance is 2, then we will add a pixel to the gap
+        if y_variance == 2:
+            # If the gap is going down, then we will add a pixel below
+            if gap[0][1] < gap[1][1]:
+                gap = (gap[0], (gap[1][0], gap[1][1] - 1))
+            # If the gap is going up, then we will add a pixel above
+            else:
+                gap = (gap[0], (gap[1][0], gap[1][1] + 1))
+        # If the variance is 1 on both axis, then we are dealing with a diagonal gap
+        if x_variance == 1 and y_variance == 1:
+            # If the gap is going right and down, then we will check if we can add a pixel to the right
+            if gap[0][0] < gap[1][0] and gap[0][1] < gap[1][1]:
+                if check_number_of_surrounding_color(self_check_img, (gap[0][0] + 1, gap[0][1]), blue) == 2:
+                    gap = (gap[0], (gap[1][0] - 1, gap[1][1]))
+                # Else we will check if we can add a pixel below
+                elif check_number_of_surrounding_color(self_check_img, (gap[0][0], gap[0][1] + 1), blue) == 2:
+                    gap = (gap[0], (gap[1][0], gap[1][1] - 1))
+                else:
+                    # Throw an error, as we should never get here
+                    raise PathNotFoundException("Error: Diagonal gap could not be filled.")
+            # If the gap is going right and up, then we will check if we can add a pixel to the right
+            if gap[0][0] < gap[1][0] and gap[0][1] > gap[1][1]:
+                if check_number_of_surrounding_color(self_check_img, (gap[0][0] + 1, gap[0][1]), blue) == 2:
+                    gap = (gap[0], (gap[1][0] - 1, gap[1][1]))
+                # Else we will check if we can add a pixel above
+                elif check_number_of_surrounding_color(self_check_img, (gap[0][0], gap[0][1] - 1), blue) == 2:
+                    gap = (gap[0], (gap[1][0], gap[1][1] + 1))
+                else:
+                    # Throw an error, as we should never get here
+                    raise PathNotFoundException("Error: Diagonal gap could not be filled.")
+            # If the gap is going left and down, then we will check if we can add a pixel to the left
+            if gap[0][0] > gap[1][0] and gap[0][1] < gap[1][1]:
+                if check_number_of_surrounding_color(self_check_img, (gap[0][0] - 1, gap[0][1]), blue) == 2:
+                    gap = (gap[0], (gap[1][0] + 1, gap[1][1]))
+                # Else we will check if we can add a pixel below
+                elif check_number_of_surrounding_color(self_check_img, (gap[0][0], gap[0][1] + 1), blue) == 2:
+                    gap = (gap[0], (gap[1][0], gap[1][1] - 1))
+                else:
+                    # Throw an error, as we should never get here
+                    raise PathNotFoundException("Error: Diagonal gap could not be filled.")
+            # If the gap is going left and up, then we will check if we can add a pixel to the left
+            if gap[0][0] > gap[1][0] and gap[0][1] > gap[1][1]:
+                if check_number_of_surrounding_color(self_check_img, (gap[0][0] - 1, gap[0][1]), blue) == 2:
+                    gap = (gap[0], (gap[1][0] + 1, gap[1][1]))
+                # Else we will check if we can add a pixel above
+                elif check_number_of_surrounding_color(self_check_img, (gap[0][0], gap[0][1] - 1), blue) == 2:
+                    gap = (gap[0], (gap[1][0], gap[1][1] + 1))
+                else:
+                    # Throw an error, as we should never get here
+                    raise PathNotFoundException("Error: Diagonal gap could not be filled.")
+    return gap
+
+
+def river_self_violations(self_check_img, self_check_coords):
+    violations = []
+
+    # Check each pixel in the river path for self violations
+    # The first and last pixel have the same special rule
+    for i in range(len(self_check_coords)):
+        # If the pixel is the first or last pixel, then we will check if it is surrounded by exactly 1 blue pixel
+        if i == 0 or i == len(self_check_coords) - 1:
+            if check_number_of_surrounding_color(self_check_img, self_check_coords[i], blue) != 1:
+                violations.append(self_check_coords[i])
+        # Else we will check if the pixel is not surrounded by exactly 2 blue pixels
+        else:
+            if check_number_of_surrounding_color(self_check_img, self_check_coords[i], blue) != 2:
+                violations.append(self_check_coords[i])
+    return violations
 
 
 def draw_rivers(landsea_image, rivers_geojson, output_file):
@@ -505,8 +639,6 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 if not check_if_valid_border(img, pixel):
                     has_invalid_border = True
                     print("Still invalid borders, trying to fix it.")
-                    if river_name == "Fargo":
-                        paint_and_show_river(img, draw_coords, orange)
                     break
         print("The river passed the border check.")
 
@@ -545,10 +677,98 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 # If we found a valid pixel to attach the river to, then we will path to it
                 else:
                     # Path to the new endpoint
-                    path = pathfind_from_b_to_b(img, draw_coords[-1], new_endpoint)
+                    path = pathfind_from_a_to_b(img, draw_coords[-1], new_endpoint)
                     # Add the path to the river
                     draw_coords = np.concatenate((draw_coords, path))
                     print("Pathfound to the new endpoint successfully.")
+        print("The river passed the tributary is connected check.")
+
+        river_is_self_violating = True
+        while river_is_self_violating:
+
+
+
+        # Finally, check the river against itself to make sure that it is valid
+        # First we will draw the river to a temp image and grab the new coordinates
+        self_check_img, self_check_coords = draw_small_river_image(draw_coords);
+
+        # Check if the river against itself,
+        # Add violating pixels to the list of pixels to remove
+        pixels_to_remove = river_self_violations(self_check_img, self_check_coords)
+        if len(pixels_to_remove) > 0:
+            print("Found " + str(len(pixels_to_remove)) + " pixels to remove from the river for river self violations.")
+            if debug:
+                self_check_img.show()
+
+        # Remove the violating pixels from the temp river
+        gaps = []
+
+        for pixel in pixels_to_remove:
+            # Before we remove the pixel, we must store the pixel position of the pixel before it and after it
+            # This is so that we can pathfind between the two pixels after the pixel has been removed
+            # Find the index of the pixel in the self_check_coords array
+            index = -1
+            for i, self_check_coord in enumerate(self_check_coords):
+                if (self_check_coord[0] == pixel[0]) and (self_check_coord[1] == pixel[1]):
+                    index = i
+                    break
+            # Get the pixel before and after the pixel to be removed, add it as a gap(predecessor, successor)
+            gaps.append((self_check_coords[index - 1], self_check_coords[index + 1]))
+            # Remove the pixel from the self_check_coords array
+            self_check_coords = np.delete(self_check_coords, np.where((self_check_coords == pixel).all(axis=1)), axis=0)
+
+            # TODO: Guard against overlapping gaps
+        # Refresh the temp image
+        self_check_img, _ = draw_small_river_image(self_check_coords);
+
+
+        #TODO: Loop through untill valid, or run as you find gaps
+        # Pathfind between the gaps
+        for gap in gaps:
+            # First we must determine that there is an issue with the gap
+            # If the gap is not an issue, then we will skip it
+            if check_number_of_surrounding_color(self_check_img, gap[0], blue) == 2 and check_number_of_surrounding_color(self_check_img, gap[1], blue) == 2:
+                continue
+            # Then, if the gap is only 1 wide, pathfinding will fail, so we must help it out
+            # This will be the case of the destination pixel is 2 away on x or y-axis or 1 away on both axis
+            fixed_gap = detect_and_fix_1_wide_gap(self_check_img, gap)
+            if fixed_gap is not None:
+                if fixed_gap[0][0] == gap[0][0] and fixed_gap[0][1] == gap[0][1]: # If the first pixel is not the same, then the gap was fixed
+                    # Insert the resolved gap into the list the coordinates
+                    self_check_coords = np.insert(self_check_coords, np.where((self_check_coords == gap[0]).all(axis=1))[0][0] + 1, gap[1], axis=0)
+                    continue
+
+            # Pathfind between the two pixels when the gap is more than 1 wide
+            fill_path = pathfind_from_a_to_b(self_check_img, gap[0], gap[1], 50)
+            # remove the end points of the path, as they are already in the river
+            # Insert the path into the river at the gap
+            self_check_coords = np.insert(self_check_coords, np.where((self_check_coords == gap[0]).all(axis=1))[0][0] + 1, fill_path[1:-1], axis=0)
+
+        # Check the river against itself again, if it fails we will abort the river
+        self_check_img, _ = draw_small_river_image(self_check_coords)
+        if debug and len(gaps) > 0:
+            self_check_img.show()
+        if len(river_self_violations(self_check_img, self_check_coords)) > 0:
+            print("The river failed the self check, skipping to next river")
+            print("=============================================")
+            continue
+
+
+        # Move the river coordinates to the correct position on the map
+        # Find the min x and y values of the river
+        min_x = np.min(draw_coords[:, 0])
+        min_y = np.min(draw_coords[:, 1])
+
+        # Add the min x and y values to the river coordinates
+        self_check_coords[:, 0] += min_x
+        self_check_coords[:, 1] += min_y
+
+        # Use the self check coordinates as the draw coordinates
+        draw_coords = self_check_coords
+
+
+        print("The river passed the self check.")
+
 
         # Draw the river to the map
         try:
@@ -558,12 +778,6 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
             # If the river is too short, then we will skip it
             print("The river " + river_name + " is too short (1 pixel), skipping to next river")
             print("=============================================")
-
-
-
-
-
-
 
         # If the river has 0 as a parent id, then it is a source river
         if river_parent == 0:
