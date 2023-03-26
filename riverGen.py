@@ -236,7 +236,7 @@ def draw_small_river_image(river_pixels):
     # Return the image and the self_check_coords
     return river_img, self_check_coords
 
-def pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel):
+def paint_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel):
     """
     Paints the path pixels and shows the image.
     red: origin pixel
@@ -276,11 +276,11 @@ def pathfind_from_a_to_b(img, origin_pixel, destination_pixel, max_pixels_visite
     while True:
         # Throw a max number of pixels visited exception
         if len(open_nodes) + len(closed_nodes) > max_pixels_visited:
-            pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
+            paint_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
             raise PathNotFoundException("Max number of pixels visited during pathfinding.")
         # Throw an exception if there are no more nodes to visit
         if len(open_nodes) == 0:
-            pain_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
+            paint_and_show_explored_path(img, closed_nodes, origin_pixel, destination_pixel)
             raise PathNotFoundException("No more nodes to visit and could not find a path")
         # Get the node with the lowest f value
         current_node = open_nodes.pop(0)
@@ -400,6 +400,7 @@ def search_for_valid_pixel_to_attach_river(img, origin_pixel, max_search_distanc
 
 
 def detect_and_fix_1_wide_gap(self_check_img, gap):
+    '''Detects and fixes a 1 pixel wide gap in the river.'''
     x_variance = abs(gap[0][0] - gap[1][0])
     y_variance = abs(gap[0][1] - gap[1][1])
     if x_variance + y_variance > 1:
@@ -464,28 +465,137 @@ def detect_and_fix_1_wide_gap(self_check_img, gap):
     return gap
 
 
-def river_self_violations(self_check_img, self_check_coords):
+def river_self_violations_exclude_ends(self_check_img, coordinates):
     violations = []
 
     # Check each pixel in the river path for self violations
+    # Returns a list of coordinates that are self violations,
     # The first and last pixel have the same special rule
-    for i in range(len(self_check_coords)):
-        # If the pixel is the first or last pixel, then we will check if it is surrounded by exactly 1 blue pixel
-        if i == 0 or i == len(self_check_coords) - 1:
-            if check_number_of_surrounding_color(self_check_img, self_check_coords[i], blue) != 1:
-                violations.append((self_check_coords[i],i))
+
+    for i in range(len(coordinates)):
+        # If the pixel is the first or last pixel then we will skip it
+        if i == 0 or i == len(coordinates) - 1:
+            continue
         # Else we will check if the pixel is not surrounded by exactly 2 blue pixels
         else:
-            if check_number_of_surrounding_color(self_check_img, self_check_coords[i], blue) != 2:
-                violations.append((self_check_coords[i],i))
+            if check_number_of_surrounding_color(self_check_img, coordinates[i], blue) != 2:
+                # We have a violation
+                violations.append(coordinates[i])
     return violations
 
 
-# this function will take a set of river coordinates and return a tuple
-# where the first is a bool and the second a list of coordinates that are the correct path
-# Det function will be named "fix_self_violations"
-def fix_self_violations(self_check_coords):
-    return (True, self_check_coords)
+def is_octhogonal(coordinate_a, coordinate_b):
+    # Check if the two coordinates are one pixel away from each other
+    # This function will return True if they are one pixel away
+    # This function will return False if they are not one pixel away
+    x_variance = abs(coordinate_a[0] - coordinate_b[0])
+    y_variance = abs(coordinate_a[1] - coordinate_b[1])
+    # If the variance is 1 on one axis and 0 on the other, then they are one pixel away
+    if (x_variance == 1 and y_variance == 0) or (x_variance == 0 and y_variance == 1):
+        return True
+    else:
+        return False
+def get_first_gap(sandbox_coordinates):
+    # This function will take a list of coordinates and return the first gap that is found
+    # A gap has two anchor points, the first pixel in the gap and the last pixel in the gap
+    # The anchor points are known valid pixels, but the pixels in between are not
+    # The gap will be returned as a tuple of two coordinates
+
+    # If no gap is found, then the function will return None
+    gap = None
+    # Loop through the coordinates and find the first gap
+    for i in range(len(sandbox_coordinates) - 1):
+        # If the next coordinate is not one pixel away from the current coordinate
+        if not is_octhogonal(sandbox_coordinates[i], sandbox_coordinates[i + 1]):
+            # We have found a gap
+            gap = (sandbox_coordinates[i], sandbox_coordinates[i + 1])
+            break
+    return gap
+
+
+
+def fill_gap(gap, sandbox_coordinates):
+    # This function will take a gap and fill it in using path finding
+
+    # First we must trim the gap from the sandbox coordinates
+    # Cast the gap to a numpy array, so we can use numpy functions
+    gap_removed_sandbox_coordinates = remove_coordinates_from_list(np.array(gap), sandbox_coordinates)
+
+    # Then we must generate an image for the algorithm to work on
+    path_image, _ = draw_small_river_image(gap_removed_sandbox_coordinates)
+
+    # Then we must find a path between the two anchor points
+    path = pathfind_from_a_to_b(path_image, gap[0], gap[1])
+
+    # Then we must add the path into the sandbox coordinates at the gap
+    # We find where this is by looking for the first coordinate in the sandbox_coordinate that is octhogonal to the first anchor point
+    for i in range(len(gap_removed_sandbox_coordinates)):
+        if is_octhogonal(gap_removed_sandbox_coordinates[i], gap[0]):
+            # We have found the index, now we can insert the path into the sandbox_coordinates
+            gap_fixed_sandbox_coordinates = np.insert(gap_removed_sandbox_coordinates, i + 1, path, axis=0)
+            break
+    return gap_fixed_sandbox_coordinates
+
+
+
+def fix_self_violations(original_coordinates):
+    was_altered = False
+    # Convert to local coordinates and draw a sandbox image
+    sandbox_img, fixed_sandbox_coordinates = draw_small_river_image(original_coordinates)
+
+    # Try to clear the river, if it fails go into a loop where we try to fix the river
+    while True:
+        # First we will check if we can find any gaps in the river
+        gap = get_first_gap(fixed_sandbox_coordinates)
+        # If a gap is not found, then we will look for self violations
+        if gap is None:
+            # ie, any pixel that isn't bordering exactly 2 blue pixels
+            sandbox_img, _ = draw_small_river_image(fixed_sandbox_coordinates)
+            violations = river_self_violations_exclude_ends(sandbox_img, fixed_sandbox_coordinates)
+            print("Found " + str(len(violations)) + " self violations")
+            if len(violations) == 0:
+            # If there are no gaps and no violations, then we are done
+                break
+
+        # Remove coordinates that are violations from the sandbox coordinates
+        fixed_sandbox_coordinates = remove_coordinates_from_list(violations, fixed_sandbox_coordinates)
+        # Find the first contiguous gap in the river
+        gap = get_first_gap(fixed_sandbox_coordinates)
+
+        # If no gap is found, then we have a problem
+        if gap is None:
+            raise PathNotFoundException("Error: No gap found in river path but "
+                                        + str(len(violations)) + " violations was found.")
+        # Else we will try to fill the gap
+        fixed_sandbox_coordinates = fill_gap(gap, fixed_sandbox_coordinates)
+
+    # Correct the coordinates to be in global coordinates
+    # Find the min x and y values of the original coordinates
+    min_x = np.min(original_coordinates[:, 0])
+    min_y = np.min(original_coordinates[:, 1])
+
+    # Add the min x and y values to the coordinates
+    fixed_sandbox_coordinates[:, 0] += min_x
+    fixed_sandbox_coordinates[:, 1] += min_y
+
+    # Return the fixed coordinates
+    return fixed_sandbox_coordinates
+
+
+
+
+def remove_coordinates_from_list(coordinates_to_remove, list_to_remove_from):
+    #  cleansed_coordinate_list must be of type np.array
+    cleansed_coordinate_list = np.empty((0, 2), dtype=np.int32)
+
+    # Loop through the list to remove from
+    for coordinate in list_to_remove_from:
+        # If the coordinate is not in the coordinates to remove, then add it to the cleansed list
+        if not np.any(np.all(coordinates_to_remove == coordinate, axis=1)):
+            cleansed_coordinate_list = np.append(cleansed_coordinate_list, [coordinate], axis=0)
+    # Return the cleansed list
+    return cleansed_coordinate_list
+
 
 def draw_rivers(landsea_image, rivers_geojson, output_file):
     """Implements the river-drawing algorithm, taking in a land-sea painted image and a river geojson file."""
@@ -690,128 +800,8 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
         print("The river passed the tributary is connected check.")
 
         # Finally, check the river against itself to make sure that it is valid
-        max_iterations = 4
-        iterations = 0
-        self_check_coords = draw_coords
-        could_not_fix_self_violations = False
-        #This while loop will run until the river is valid, or until we have reached the max number of iterations
-        while True:
-            iterations += 1
-
-            if iterations > max_iterations:
-                could_not_fix_self_violations = True
-                break
-
-            # First we will draw the river to a temp image and grab the new coordinates
-            # This to get a sandboxed version of the river
-            self_check_img, self_check_coords = draw_small_river_image(self_check_coords);
-            # Check if the river against itself,
-            # and add violating pixels to the list of pixels to remove
-            pixels_to_remove = river_self_violations(self_check_img, self_check_coords)
-
-            # If we found anything to be in violation, report it to the user
-            if len(pixels_to_remove) > 0:
-                print("Found " + str(len(pixels_to_remove)) + " pixels to remove from the river for river self violations.")
-                if debug:
-                    self_check_img.show()
-            else:
-                # If no violations found, we have passed this check:
-                break
-
-            # Groups the continuous violations into batches, since they woudl form a single gap
-            # Then tries to fix the gaps
-            while len(pixels_to_remove) > 0:
-                # Take the first pixel, and add it to a list of pixels to remove, called a batch
-                batch = pixels_to_remove.pop(0)
-                # Find all pixels that are connected to the first pixel in the batch
-                # and add them to the batch
-                # pixels to remove store the pixel position and the index of the pixel in the self_check_coords array
-                furthest_index_so_far = batch[0][1]
-                for pixel in pixels_to_remove:
-                    if pixel[1] == furthest_index_so_far + 1:
-                        batch.append(pixel)
-                        furthest_index_so_far += 1
-                    else:
-                        break # We have reached the end of the batch
-                # Remove the batch from the pixels_to_remove list
-                for pixel in pixels_to_remove:
-                    if pixel in batch:
-                        pixels_to_remove.remove(pixel)
-
-                # Now we have a batch of contiguous pixels to process
-
-                # Now we must store this batch as a gap
-                # The gap spans from the predecessor of the first pixel in the batch, to the successor of the last pixel in the batch
-                # If the first pixel in the batch is the first pixel in the river, then the gap starts at the first pixel in the river
-                gap = None
-                if batch[0][1] == 0:
-                    gap_start = self_check_coords[0]
-                else:
-                    gap_start = self_check_coords[batch[0][1] - 1]
-                # If the last pixel in the batch is the last pixel in the river, then the gap ends at the last pixel in the river
-                if batch[-1][1] == len(self_check_coords) - 1:
-                    gap_end = self_check_coords[-1]
-                else:
-                    gap_end = self_check_coords[batch[-1][1] + 1]
-                # Store the gap
-                gap([gap_start, gap_end])
-
-                # Remove the pixels from the self_check_coords array
-                # We know the index of the pixel in the self_check_coords array, so we can remove it directly
-                for pixel in batch:
-                    self_check_coords = np.delete(self_check_coords, pixel[1], 0)
-
-                # Refresh the temp image, it will now be missing the pixels we just removed
-                self_check_img, _ = draw_small_river_image(self_check_coords);
-
-                # We have removed one contiguous instance of a violation
-                # Now me must try to fix the gap
-
-                # First we must determine that there is an issue with the gap
-                # If the gap is not an issue, then we will skip it
-                if check_number_of_surrounding_color(self_check_img, gap[0], blue) == 2 and check_number_of_surrounding_color(self_check_img, gap[1], blue) == 2:
-                    continue
-
-                # Then, if the gap is only 1 wide, pathfinding will fail, so we must help it out
-                # This will be the case if the destination pixel is 2 away on x or y-axis or 1 away on both axis
-                fixed_gap = detect_and_fix_1_wide_gap(self_check_img, gap)
-                if fixed_gap is not None:
-                    # If the first pixel is not the same, then the gap was fixed
-                    if fixed_gap[0][0] == gap[0][0] and fixed_gap[0][1] == gap[0][1]:
-                        # Insert the resolved gap into the list the coordinates at index of the first pixel in the batch
-                        self_check_coords = np.insert(self_check_coords, batch[0][1], fixed_gap, axis=0)
-                        continue
-
-                # For longer gaps we can Pathfind between the two pixels
-                fill_path = pathfind_from_a_to_b(self_check_img, gap[0], gap[1], 50)
-                # remove the end points of the path, as they are already in the river
-                fill_path = np.delete(fill_path, 0, 0)
-                fill_path = np.delete(fill_path, -1, 0)
-                # Insert the path into the river at the gap
-                self_check_coords = np.insert(self_check_coords, batch[0][1], fill_path, axis=0)
-
-            #End of while loop for processing batches
-
-        # print loop information
-        if could_not_fix_self_violations:
-            print("The river is still invalid after " + str(max_iterations) + " iterations, skipping to next river")
-            print("=============================================")
-            break
-        else:
-            print("The river " + river_name + " has been processed " + str(iterations) + " times.")
-        # End of while loop for processing pixels_to_remove
-
-        # Move the river coordinates to the correct position on the map
-        # Find the min x and y values of the river
-        min_x = np.min(draw_coords[:, 0])
-        min_y = np.min(draw_coords[:, 1])
-
-        # Add the min x and y values to the river coordinates
-        self_check_coords[:, 0] += min_x
-        self_check_coords[:, 1] += min_y
-
-        # Use the corrected self check coordinates as the draw coordinates
-        draw_coords = self_check_coords
+        # We wil remove invalid pixels from teh river, and fill the gaps with a path
+        draw_coords = fix_self_violations(draw_coords)
         print("The river passed the self check.")
 
 
