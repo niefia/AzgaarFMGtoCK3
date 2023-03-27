@@ -464,6 +464,20 @@ def detect_and_fix_1_wide_gap(self_check_img, gap):
                     raise PathNotFoundException("Error: Diagonal gap could not be filled.")
     return gap
 
+def river_self_violations_ends_only(sandbox_img, fixed_sandbox_coordinates):
+
+    # Check the first and last pixel in the river path for self violations
+    # Returns a list of coordinates that are self violations
+
+    violations = []
+    # Check the first pixel
+    if check_number_of_surrounding_color(sandbox_img, fixed_sandbox_coordinates[0], blue) != 1:
+        violations.append(fixed_sandbox_coordinates[0])
+
+    # Check the last pixel
+    if check_number_of_surrounding_color(sandbox_img, fixed_sandbox_coordinates[-1], blue) != 1:
+        violations.append(fixed_sandbox_coordinates[-1])
+    return violations
 
 def river_self_violations_exclude_ends(self_check_img, coordinates):
     violations = []
@@ -501,6 +515,11 @@ def get_first_gap(sandbox_coordinates):
     # The anchor points are known valid pixels, but the pixels in between are not
     # The gap will be returned as a tuple of two coordinates
 
+    # I teh coordinates are less than 2, then there cannot be a gap
+    if len(sandbox_coordinates) < 2:
+        # Throw an error, as we should never get here
+        raise ValueError("Error: You are trying to find a gap in a list of coordinates that is less than 2.")
+
     # If no gap is found, then the function will return None
     gap = None
     # Loop through the coordinates and find the first gap
@@ -510,6 +529,17 @@ def get_first_gap(sandbox_coordinates):
             # We have found a gap
             gap = (sandbox_coordinates[i], sandbox_coordinates[i + 1])
             break
+
+    # Check the gap does not have two equal anchors
+    if gap is not None:
+        if gap[0][0] == gap[1][0] and gap[0][1] == gap[1][1]:
+            img , _ = draw_small_river_image(sandbox_coordinates)
+            img = highlight_point(img, gap[0], red)
+            img = highlight_point(img, gap[1], purple)
+            # Throw an error, as we should never get here
+            raise ValueError("Error: Gap detected but it is invalid. Gap had the same anchor points at both ends.")
+
+
     return gap
 
 
@@ -517,12 +547,24 @@ def get_first_gap(sandbox_coordinates):
 def fill_gap(gap, sandbox_coordinates):
     # This function will take a gap and fill it in using path finding
 
+
     # First we must trim the gap from the sandbox coordinates
     # Cast the gap to a numpy array, so we can use numpy functions
     gap_removed_sandbox_coordinates = remove_coordinates_from_list(np.array(gap), sandbox_coordinates)
 
     # Then we must generate an image for the algorithm to work on
     path_image, _ = draw_small_river_image(gap_removed_sandbox_coordinates)
+
+    # It is an error to have the same anchor points, so we should handle that
+    if gap[0][0] == gap[1][0] and gap[0][1] == gap[1][1]:
+        # Throw an error, as we should never get here
+        raise PathNotFoundException("Error: Gap could not be filled. Gap had the same anchor points at both ends.")
+
+    # If teh gap is huge, it is likely an error
+    if abs(gap[0][0] - gap[1][0]) > 10 or abs(gap[0][1] - gap[1][1]) > 10:
+        raise PathNotFoundException("Error: Gap could not be filled. Gap was massive large.")
+
+
 
     # Then we must find a path between the two anchor points
     path = pathfind_from_a_to_b(path_image, gap[0], gap[1])
@@ -533,8 +575,72 @@ def fill_gap(gap, sandbox_coordinates):
         if is_octhogonal(gap_removed_sandbox_coordinates[i], gap[0]):
             # We have found the index, now we can insert the path into the sandbox_coordinates
             gap_fixed_sandbox_coordinates = np.insert(gap_removed_sandbox_coordinates, i + 1, path, axis=0)
-            break
-    return gap_fixed_sandbox_coordinates
+            return gap_fixed_sandbox_coordinates
+    # If we get here, then we have an error
+    raise PathNotFoundException("Error: Gap could not be filled. Found no location for it to be inserted into the sandbox coordinates. Meaning it was never a gap")
+
+
+
+def highlight_violations(highlight_img, violations):
+    # Copy the image so we don't modify the original
+    highlight_img = highlight_img.copy()
+    # This function will take a list of violations and highlight them on the image
+    # Draw object
+    draw = ImageDraw.Draw(highlight_img)
+    for violation in violations:
+        # Draw a red pixel at the violation
+        draw.point((violation[0],violation[1]), red)
+    highlight_img.show()
+def highlight_river(highlight_img, coordinates):
+
+    # Copy the image so we don't modify the original
+    highlight_img = highlight_img.copy()
+
+    # This function will take a list of coordinates and highlight them on the image in a repeating pattern
+    pattern = [blue, (59, 59, 255), (98, 98, 255), (137, 137, 255)]
+    # Draw object
+    draw = ImageDraw.Draw(highlight_img)
+    index = 0
+    for coordinate in coordinates:
+        # Draw a pixel at the coordinate
+        draw.point((coordinate[0], coordinate[1]), pattern[index % len(pattern)])
+    highlight_img.show()
+
+
+def highlight_point(highlight_img, coordinate, color = red):
+    # Copy the image so we don't modify the original
+    highlight_img = highlight_img.copy()
+    # This function will take a coordinate and highlight it on the image
+    # Draw object
+    draw = ImageDraw.Draw(highlight_img)
+    # Draw a pixel at the coordinate
+    draw.point((coordinate[0], coordinate[1]), color)
+    highlight_img.show()
+    return highlight_img
+def remove_duplicate_coordinates(fixed_sandbox_coordinates):
+    # This function will take a list of coordinates and remove any duplicates
+    # Loop through the coordinates and copy them into a new list
+    # If the coordinate is already in the list, then we will skip it
+    # This will remove any duplicates
+    new_coordinates = []
+    found_duplicate = False
+    for i in range(len(fixed_sandbox_coordinates)):
+        # if this is i = 0, then we will always add it
+        if i == 0:
+            new_coordinates.append(fixed_sandbox_coordinates[i])
+        else:
+            # Check if the coordinate is already in the list
+            for j in range(len(new_coordinates)):
+                if fixed_sandbox_coordinates[i][0] == new_coordinates[j][0] and fixed_sandbox_coordinates[i][1] == new_coordinates[j][1]:
+                    found_duplicate = True
+                    break
+            # If we did not find a duplicate, then we will add it to the list
+            if not found_duplicate:
+                new_coordinates.append(fixed_sandbox_coordinates[i])
+
+    return np.array(new_coordinates)
+
+
 
 
 
@@ -544,6 +650,10 @@ def fix_self_violations(original_coordinates):
     sandbox_img, fixed_sandbox_coordinates = draw_small_river_image(original_coordinates)
 
     # Try to clear the river, if it fails go into a loop where we try to fix the river
+    # Must happen once before the loop
+    sandbox_img, _ = draw_small_river_image(fixed_sandbox_coordinates)
+    violations = river_self_violations_exclude_ends(sandbox_img, fixed_sandbox_coordinates)
+    # If there is no violations, then we should be done
     while True:
         # First we will check if we can find any gaps in the river
         gap = get_first_gap(fixed_sandbox_coordinates)
@@ -552,13 +662,22 @@ def fix_self_violations(original_coordinates):
             # ie, any pixel that isn't bordering exactly 2 blue pixels
             sandbox_img, _ = draw_small_river_image(fixed_sandbox_coordinates)
             violations = river_self_violations_exclude_ends(sandbox_img, fixed_sandbox_coordinates)
+            end_violations = river_self_violations_ends_only(sandbox_img, fixed_sandbox_coordinates)
+            if len(end_violations) > 0:
+                violations = np.append(violations, end_violations, axis=0)
             print("Found " + str(len(violations)) + " self violations")
             if len(violations) == 0:
-            # If there are no gaps and no violations, then we are done
+            # If there are no gaps and no violations, then we are done, but me mighthave to do some cleanup if the source or end is a violation
                 break
+           # else:
+           #     highlight_violations(sandbox_img, violations)
+           #     highlight_river(sandbox_img, fixed_sandbox_coordinates)
+           #     highlight_violations(sandbox_img, (fixed_sandbox_coordinates[0], fixed_sandbox_coordinates[2]))
+           #     highlight_violations(sandbox_img, (fixed_sandbox_coordinates[-1], fixed_sandbox_coordinates[-3]))
 
         # Remove coordinates that are violations from the sandbox coordinates
         fixed_sandbox_coordinates = remove_coordinates_from_list(violations, fixed_sandbox_coordinates)
+
         # Find the first contiguous gap in the river
         gap = get_first_gap(fixed_sandbox_coordinates)
 
@@ -566,6 +685,7 @@ def fix_self_violations(original_coordinates):
         if gap is None:
             raise PathNotFoundException("Error: No gap found in river path but "
                                         + str(len(violations)) + " violations was found.")
+
         # Else we will try to fill the gap
         fixed_sandbox_coordinates = fill_gap(gap, fixed_sandbox_coordinates)
 
@@ -585,17 +705,44 @@ def fix_self_violations(original_coordinates):
 
 
 def remove_coordinates_from_list(coordinates_to_remove, list_to_remove_from):
+    # If the list to remove from is empty, then we will throw an error
+    if len(list_to_remove_from) == 0:
+        raise ValueError("Error: The list to remove from is empty")
+    # If the list of coordinates to remove is empty, then we will return the list to remove from
+    if len(coordinates_to_remove) == 0:
+        return list_to_remove_from
+
+
+    #  cleansed_coordinate_list must be of type np.array
+    cleansed_coordinate_list = np.empty((0, 2), dtype=np.int32)
+
+    # Loop through the list to remove from
+    for coordinate in list_to_remove_from:
+        # check it against the list of coordinates to remove
+        # If the coordinate is in the coordinates to remove, then we will skip it
+        found_in_blacklist = False
+        for coordinate_to_remove in coordinates_to_remove:
+            if coordinate[0] == coordinate_to_remove[0] and coordinate[1] == coordinate_to_remove[1]:
+                found_in_blacklist = True
+                break
+        # If the coordinate is in the coordinates to remove, then we will skip it
+        if found_in_blacklist:
+            continue
+        # Else we will add it to the cleansed list
+        cleansed_coordinate_list = np.append(cleansed_coordinate_list, [coordinate], axis=0)
+    # Return the cleansed list
+    return cleansed_coordinate_list
+def remove_coordinate_from_list(coordinate_to_remove, list_to_remove_from):
     #  cleansed_coordinate_list must be of type np.array
     cleansed_coordinate_list = np.empty((0, 2), dtype=np.int32)
 
     # Loop through the list to remove from
     for coordinate in list_to_remove_from:
         # If the coordinate is not in the coordinates to remove, then add it to the cleansed list
-        if not np.any(np.all(coordinates_to_remove == coordinate, axis=1)):
+        if not coordinate[0] == coordinate_to_remove[0] and coordinate[1] == coordinate_to_remove[1]:
             cleansed_coordinate_list = np.append(cleansed_coordinate_list, [coordinate], axis=0)
     # Return the cleansed list
     return cleansed_coordinate_list
-
 
 def draw_rivers(landsea_image, rivers_geojson, output_file):
     """Implements the river-drawing algorithm, taking in a land-sea painted image and a river geojson file."""
@@ -620,6 +767,8 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
     # Order the list of rivers by parent ID, so that ID 0 is first, and ID 1 is second, etc.
     # This is so that tributaries are rendered later than source rivers
     rivers = sorted(rivers, key=lambda k: k["properties"]["parent"])
+
+    discarded_rivers = []
 
     print("Number of rivers: " + str(len(rivers)))
     rivers_count = 0
@@ -672,9 +821,15 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
 
         print("Trimming pixels outside the image gave " + str(len(draw_coords)) + " pixels")
 
+
+        # Remove any duplicate coordinates
+        draw_coords = remove_duplicate_coordinates(draw_coords)
+        print("Trimming duplicate coordinates gave " + str(len(draw_coords)) + " pixels")
+
         # Check that the river is not empty
         if len(draw_coords) == 0:
             # Print out an error message and continue to the next river
+            discarded_rivers.append(river)
             print("River is empty, skipping to next river")
             print("=============================================")
             continue
@@ -716,6 +871,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 # Remove the last pixel from the river
                 # if this was the last pixel in the river, then we will abort this river
                 if len(draw_coords) < 1:
+                    discarded_rivers.append(river)
                     print("Could not fix the river, skipping to next river")
                     print("=============================================")
                     break
@@ -746,6 +902,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
             draw_coords = draw_coords[:-1]
             # if this was the last pixel in the river, then we will abort this river
             if len(draw_coords) == 1:
+                discarded_rivers.append(river)
                 print("Could not fix the river border, skipping to next river")
                 print("=============================================")
                 break
@@ -767,6 +924,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                     # Remove the last pixel from the river
                     # if this was the last pixel in the river, then we will abort this river
                     if len(draw_coords) < 1:
+                        discarded_rivers.append(river)
                         print("Could not fix the river, skipping to next river")
                         print("=============================================")
                         break
@@ -776,6 +934,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                 try:
                     new_endpoint = search_for_valid_pixel_to_attach_river(img, draw_coords[-1])
                 except PathNotFoundException:
+                    discarded_rivers.append(river)
                     print("Could not find a valid pixel to attach the tributary to, skipping to next river")
                     print("=============================================")
                     break
@@ -785,10 +944,9 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
 
                 # If we could not find a valid pixel to attach the river to, then we will abort this river
                 if new_endpoint is None:
+                    discarded_rivers.append(river)
                     print("Could not find a valid pixel to attach the river to, skipping to next river")
                     print("=============================================")
-                    # TODO: When a river is skipped, it should be added to a list of skipped rivers, so that we can
-                    #       try to fix them after other rivers have been drawn.
                     break
                 # If we found a valid pixel to attach the river to, then we will path to it
                 else:
@@ -799,8 +957,13 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
                     print("Pathfound to the new endpoint successfully.")
         print("The river passed the tributary is connected check.")
 
+
+        # Remove any duplicate coordinates that snuck in somehow
+        draw_coords = remove_duplicate_coordinates(draw_coords)
+        print("Trimming duplicate coordinates gave " + str(len(draw_coords)) + " pixels")
+
         # Finally, check the river against itself to make sure that it is valid
-        # We wil remove invalid pixels from teh river, and fill the gaps with a path
+        # We will remove invalid pixels from teh river, and fill the gaps with a path
         draw_coords = fix_self_violations(draw_coords)
         print("The river passed the self check.")
 
@@ -811,6 +974,7 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
         except:
             # The draw.line function will throw an error if the river is too short
             # If the river is too short, then we will skip it
+            discarded_rivers.append(river)
             print("The river " + river_name + " is too short (1 pixel), skipping to next river")
             print("=============================================")
 
@@ -820,13 +984,20 @@ def draw_rivers(landsea_image, rivers_geojson, output_file):
         else:
             # If the river has a parent id, then it is a tributary. So we change the last pixel to red
             draw.point(draw_coords[-1].tolist(), fill=red)  # Recolours the end point of the river
-
+        print("The river " + river_name + " was drawn successfully.")
+        print("=============================================")
         # TODO: Error checking the area around the river to make sure all pixels are valid
 
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save(output_file, "PNG")
     # System open the image for debug purposes
     img.show()
+
+    # Print out the discarded rivers
+    print("The following rivers were discarded because the converter could not fix them:")
+    for river in discarded_rivers:
+        print(river["properties"]["name"])
+    print("=============================================")
 
 
 # Checks for Specific error where Multiple Blue pixels are around Green Source, replaces with White automatically
