@@ -57,14 +57,15 @@ def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
                                             os.path.join(output_dir, "noemoji.json"))
         print("Emoji data removed from json")
 
+        # Convert JSON to Excel spreadsheet
+        spreadsheets.json_to_sheet(os.path.join(output_dir, "noemoji.json"), os.path.join(output_dir, "combined_data.xlsx"))
+        print("Json extracted")
+        # Comment from snibbo: moved this here, since this is related to / next step after "noemoji.json"
+
 
         # Assign colors to Baronies in GeoJSON file
         spreadsheets.colorRandom(os.path.join(modpath, "input.geojson"), os.path.join(output_dir, "output.geojson"))
         print("Colors Assigned to Baronies for Cells method")
-
-        # Convert JSON to Excel spreadsheet
-        spreadsheets.json_to_sheet(os.path.join(output_dir, "noemoji.json"), os.path.join(output_dir, "combined_data.xlsx"))
-        print("Json extracted")
 
         # Convert GeoJSON to Excel spreadsheet
         spreadsheets.cells_geojson_to_sheet(os.path.join(output_dir, "output.geojson"),
