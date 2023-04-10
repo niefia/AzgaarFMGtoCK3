@@ -1,6 +1,6 @@
 import json
 import itertools
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 import hextorgb
 import os
@@ -8,6 +8,7 @@ import pandas as pd
 import ast
 from PIL import Image
 import numpy as np
+import random
 
 # Declare global variables
 scale_factor = None
@@ -61,6 +62,10 @@ def heightmapAutoScaledfunc(geojson_file, output_file):
 
     polygs = data["features"]
 
+    # Create an L mode image for the L version of the heightmap
+    img_l = Image.new("L", (8192, 4096))
+    draw_l = ImageDraw.Draw(img_l)
+
     img = Image.new("I;16", (8192, 4096))
     draw = ImageDraw.Draw(img)
 
@@ -75,6 +80,10 @@ def heightmapAutoScaledfunc(geojson_file, output_file):
         else:
             normalized_height = (height - min_height) * 255 / (max_height - min_height)
             color = int(normalized_height)
+
+            # Clamp the color to the valid range for an L mode image
+            color = max(min(color, 255), 0)
+
         for coords in poly["geometry"]["coordinates"]:
             # Scale the coordinates based on the size of the image and center them
             coords = [[(coord[0] - min_x) / scale_factor + x_offset,
@@ -85,6 +94,211 @@ def heightmapAutoScaledfunc(geojson_file, output_file):
     img.save(output_file, "PNG")
 
 #heightmapAutoScaledfunc("output.geojson",  "heightmap.png")
+
+def heightmap_blur_and_noise(output_dir):
+    import numpy as np
+    from scipy.ndimage import gaussian_filter
+    from PIL import Image, ImageFilter
+
+
+    # Define Perlin noise function
+    def noise(x, y):
+        n = int(x + y * 57)
+        n = (n << 13) ^ n
+        return (1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0)
+
+
+    # Load the image
+    heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
+    img = Image.open(heightmap_file)
+    output_file_for_papermap= os.path.join(output_dir, "map_data/heightmap_for_paper.png")
+    img.save(output_file_for_papermap, "PNG")
+    # Convert the image to a numpy array
+    arr = np.array(img, dtype=np.float32)
+
+    # Apply Gaussian blur to the array
+    arr = gaussian_filter(arr, sigma=7)
+
+    # Add Perlin noise to the array
+    for i in range(arr.shape[0]):
+        print(i)
+        for j in range(arr.shape[1]):
+            arr[i][j] += 0.10 * noise(i/50.0, j/50.0)
+            #10% opacity noise layer
+
+    # Convert the array back to an image
+    img = Image.fromarray(arr.astype(np.uint16))
+
+    # Save the blurred image with Perlin noise to output file
+    output_file = os.path.join(output_dir, "map_data/heightmap.png")
+    img.save(output_file, "PNG")
+
+
+
+#heightmap_blur_and_noise()
+
+
+#Uses curve and theshold to generate biome masks from the heightmap
+def heightmap_to_mountain_biome(output_dir):
+    for i, curve_value in enumerate([2.0, 2.2, 3.0, 0.5, 0.5, 1.5,4.0]):#numbers are curve values for each mask, these essentially define the "intensity" of the texture mask
+        # Load the image
+        heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
+        img = Image.open(heightmap_file)
+        # Convert the image to a NumPy array
+        arr = np.array(img)
+        # Set the upper and lower thresholds based on the terrain type
+        if i == 0:  # hills rocky
+            lower_threshold = 0.32
+            upper_threshold = 0.75
+        elif i == 1:  # mountains
+            lower_threshold = 0.4
+            upper_threshold = 1.0
+        elif i == 2: #snow mountains
+            lower_threshold = 0.7
+            upper_threshold = 1.0
+        elif i == 3: #beach
+            # Invert the array for the beach mask
+            # Array must be inverted to allow the sea to be textured, as generating using threshold where sea would have been included still left sea values as black, not white
+            arr = 65535 - arr
+            lower_threshold = 0.0
+            upper_threshold = 1.0
+            lower_threshold2 = 0.89
+            upper_threshold2 = 1.0
+        elif i == 4: #coastline cliff
+            lower_threshold = 0.0
+            upper_threshold = 0.1
+        elif i == 5: #hills green
+            lower_threshold = 0.2
+            upper_threshold = 0.40
+        elif i == 6: #snow
+            lower_threshold = 0.99
+            upper_threshold = 1.0
+
+        # Apply the lower and upper thresholds
+        arr[arr < lower_threshold * 65535] = 0
+        arr[arr > upper_threshold * 65535] = 0
+
+        if i == 3:
+            arr[arr < lower_threshold2 * 65535] = 0
+            arr[arr > upper_threshold2 * 65535] = 0
+
+        # Apply a curve filter with the current curve value
+        arr = (arr / 65535) ** curve_value * 65535
+
+        # Rescale the pixel values to the range of 0-255
+        arr = (arr / 256).astype(np.uint8)
+
+        # Convert the NumPy array back to an image
+        img = Image.fromarray(arr)
+
+        # Save the image with a different name for each iteration
+        output_folder = os.path.join(output_dir,"gfx/map/terrain")
+
+        if not os.path.exists(output_folder):   
+            os.makedirs(output_folder)
+
+        img.save(os.path.join(output_folder,f"{'hills_01_rocks' if i == 0 else 'mountain_02' if i == 1 else 'mountain_02_c_snow' if i == 2 else 'beach_02' if i == 3 else 'coastline_cliff_grey' if i == 4 else 'hills_01' if i == 5 else 'snow'}_mask.png"))
+
+
+#heightmap_to_mountain_biome()
+
+
+
+
+
+
+def gradient_map(output_dir):
+
+    # Load the heightmap image as a NumPy array
+    heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
+
+    # Compute the gradient map using NumPy's gradient function
+    gx, gy = np.gradient(heightmap)
+    gradient = np.sqrt(gx**2 + gy**2)
+
+    # Normalize the gradient map to the range [0, 255]
+    gradient = (gradient - gradient.min()) / (gradient.max() - gradient.min()) * 255
+    gradient = gradient.astype(np.uint8)
+
+    # Save the gradient map as an image
+
+    Image.fromarray(gradient).save(os.path.join(output_dir,'gradient.png'))
+
+
+#gradient_map()
+
+
+def mountain_multiply_by_gradient ():
+    # Load the heightmap image as a NumPy array
+    heightmap = np.array(Image.open('heightmap.png'))
+
+    # Compute the gradient map using NumPy's gradient function
+    gx, gy = np.gradient(heightmap)
+    gradient = np.sqrt(gx**2 + gy**2)
+
+    # Normalize the gradient map to the range [0, 65535]
+    gradient = (gradient - gradient.min()) / (gradient.max() - gradient.min()) * 65535
+    gradient = gradient.astype(np.uint16)
+
+    # Load the mountains mask image as a NumPy array and scale it to the range [0, 1]
+    mountain_mask = np.array(Image.open('mountain_02_mask.png').convert('L'))
+    mountain_mask = mountain_mask / 255
+
+    # Multiply the gradient map by the mountains mask image
+    result = gradient * mountain_mask
+    result = (result / 65535 * 255).astype(np.uint8)
+
+    # Increase the brightness of the result by a factor of 1.5
+    result = np.clip(result * 3.5, 0, 255).astype(np.uint8)
+
+    # Save the result as an image
+    Image.fromarray(result).save('result.png')
+
+
+
+
+def generate_tree_mask_from_biome_mask_with_perlin_noise():
+    #this functions slow :( could use pregenerated noise?
+    from noise import snoise2  # Perlin noise function
+
+    # Load forest texture mask
+    forest_mask = np.array(Image.open('forest_pine_01_mask.png').convert('L'))
+
+    # Define noise parameters
+    scale = 200  # determines the roughness of the noise
+    octaves = 8  # determines the level of detail in the noise
+    persistence = 0.3  # determines how much each octave contributes to the overall shape
+    lacunarity = 2.5  # determines how quickly the frequency increases with each octave
+
+    # Generate Perlin noise map
+    tree_density_map = np.zeros_like(forest_mask)
+    height, width = tree_density_map.shape
+    for y in range(height):
+        for x in range(width):
+            noise_val = snoise2(x/scale, y/scale, octaves=octaves, persistence=persistence, lacunarity=lacunarity)
+            tree_density_map[y, x] = forest_mask[y, x] * (1 + noise_val) / 2
+
+    # Apply a curve filter with the current curve value
+    tree_density_map = (tree_density_map / 255) ** 4 * 255
+
+    # Save tree density map as an image
+    tree_density_map = tree_density_map.astype(np.uint8)
+    Image.fromarray(tree_density_map).save('tree_density_map.png')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -311,6 +525,9 @@ def biomesAutoScaled(geojson_file, output_dir):
                     draw.polygon(list(itertools.chain(*coords)), fill=255)
 
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
+
+        # Apply a Gaussian blur to the image
+        img = img.filter(ImageFilter.GaussianBlur(radius=5))
         # Save the biome image with the same filename as the heightmap image
         img.save(f"{output_dir}/biome_{biome}.png", "PNG")
 
