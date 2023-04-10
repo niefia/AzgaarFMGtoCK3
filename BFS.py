@@ -5,13 +5,12 @@ from openpyxl.styles import PatternFill
 import random
 import hextorgb
 import ast
-import pandas as pd
 from PIL import Image, ImageDraw
 from openpyxl import Workbook
-import openpyxl
 import re
 import xlwt
 import json
+import sys
 
 
 def bfs_distance(combined_data_file, cells_data_file, output_file):
@@ -32,6 +31,8 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
     cost_so_far = dict()
     started_at = dict()
     coordinates = dict()
+    neighbours = dict()
+    impassable = dict()
 
     # Starting points get distance 0 and will point to themselves
     for location in start:
@@ -39,6 +40,7 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
         cost_so_far[location] = 0
         started_at[location] = location
         coordinates[location] = cells_data.loc[cells_data["id"] == location, "coordinates"].tolist()[0]
+        neighbours[location] = []
 
     # Expand outwards from existing points
     total_cells = len(cells_data)
@@ -49,15 +51,32 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
     print("Progress Bar may finish at around 65 as it only counts populated cells ")
     while not frontier.empty():
         current = frontier.get()
-        if current in cells_data["id"].tolist() and cells_data.loc[cells_data["id"] == current, "type"].tolist()[
-            0] != "ocean":
-            for next_cell in cells_data.loc[cells_data["id"] == current, "neighbors"].tolist()[0]:
-                if next_cell not in cost_so_far and cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[
-                    0] != "ocean" and cells_data.loc[cells_data["id"] == next_cell, "County"].tolist()[0] == \
-                        cells_data.loc[cells_data["id"] == current, "County"].tolist()[0]:
+        current_cell_Type = cells_data.loc[cells_data["id"] == current, "type"].tolist()[0]
+        current_cell_Neighbours = cells_data.loc[cells_data["id"] == current, "neighbors"].tolist()[0]
+        current_cell_County = cells_data.loc[cells_data["id"] == current, "County"].tolist()[0]
+        
+        # Comment snibbo: I suggest to reduce the size of very large Baronies by setting a max cell size
+        if cost_so_far[current] > 20:
+            impassable[current] = True
+        else:
+            impassable[current] = False
+
+
+        if current in cells_data["id"].tolist() and current_cell_Type != "ocean":
+            for next_cell in current_cell_Neighbours:
+                next_cell_Type = cells_data.loc[cells_data["id"] == next_cell, "type"].tolist()[0]
+                next_cell_County = cells_data.loc[cells_data["id"] == next_cell, "County"].tolist()[0]
+                next_cell_Coordinates = cells_data.loc[cells_data["id"] == next_cell, "coordinates"].tolist()[0]
+
+                # Comment snibbo: write neighbours
+                if (next_cell_County != current_cell_County) and (next_cell not in neighbours[current]) and (next_cell_Type != "ocean") and (next_cell_Type != "lake"):
+                    neighbours[current].append(next_cell)
+
+                if (next_cell not in cost_so_far) and (next_cell_Type != "ocean" and next_cell_Type != "lake") and (next_cell_County == current_cell_County):
                     cost_so_far[next_cell] = cost_so_far[current] + 1
                     started_at[next_cell] = started_at[current]
-                    coordinates[next_cell] = cells_data.loc[cells_data["id"] == next_cell, "coordinates"].tolist()[0]
+                    coordinates[next_cell] = next_cell_Coordinates
+                    neighbours[next_cell] = neighbours[current]
                     frontier.put(next_cell)
                     # Update progress bar
                     current_cell += 1
@@ -73,14 +92,20 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
     # Add a column to the output DataFrame for the nearest town and coordinates
     output_data["nearest_town"] = output_data["id"].apply(lambda x: id_to_town[started_at[x]])
     output_data["coordinates"] = output_data["id"].apply(lambda x: coordinates.get(x))
+    output_data["neighbours"] = output_data["id"].apply(lambda x: neighbours.get(x))
+    output_data["impassable"] = output_data["id"].apply(lambda x: impassable.get(x))
 
     # Save the output DataFrame to a new Excel file
     output_data.to_excel(output_file, index=False)
-    print
+    
 
 
 
+combined_data_file = "../ck3_map_gen_data/_snibmap/combined_data.xlsx"
+cells_data_file = "../ck3_map_gen_data/_snibmap/cellsData.xlsx"
+output_file = "../ck3_map_gen_data/_snibmap/snibboOutputTest.xlsx"
 
+bfs_distance(combined_data_file, cells_data_file, output_file)
 
 
 
@@ -190,8 +215,6 @@ def extractBFS(input_file, output_file):
 
 #Copy over Town Id's which will be used as Barony id
 def BaronyId(input_file, output_file):
-    import pandas as pd
-
     # Load the input file and select the "burgs" sheet
     combined_data = pd.read_excel(input_file, sheet_name="burgs")
 
@@ -204,8 +227,6 @@ def BaronyId(input_file, output_file):
     # Save the updated "province_def" DataFrame to the specified output file
     province_def.to_excel(output_file, index=False)
 
-
-import pandas as pd
 
 
 def BaronyIdBiomes(combined_data, cellsData, townbiomes):
@@ -258,8 +279,6 @@ def ProvData(updated_file_name, province_def_name, output_file_name):
 
 
 def cOrder(file_path):
-    import openpyxl
-
     # Open the Excel file
     wb = openpyxl.load_workbook(file_path)
 
