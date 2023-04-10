@@ -139,6 +139,9 @@ def json_to_sheet(input_file_path, output_file_path):
     for cell in burgs:
         if isinstance(cell, dict) and cell:
             name = cell.get("name", None)
+            # Comment from snibbo: You should maybe end when None ?! Or does it even reach this line when name is not set?
+            # e.g.:
+            # if name:
             suffix = ""
             while name + suffix in names:
                 suffix = f"{random.choice(suffixes)}"
@@ -155,7 +158,8 @@ def json_to_sheet(input_file_path, output_file_path):
             burgs_rows.append(row)
 
 
-    burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
+    # burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
+    # Comment from snibbo: This line can be removed, because "burgs_df" is set below
 
     # Create data frames from the lists of dictionaries
     states_df = pd.DataFrame(states_rows, columns=["i", "name","diplomacy"])
