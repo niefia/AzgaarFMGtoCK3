@@ -278,7 +278,7 @@ class App(customtkinter.CTk):
 
                 generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
-                self.status_label.configure(text="Spreadsheets Complte")
+                self.status_label.configure(text="Spreadsheets Complete")
                 self.status_label.configure(text="Producing Map Rasters")
                 self.Conversion_progress_bar.set(0.3)
                 generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
@@ -310,6 +310,8 @@ class App(customtkinter.CTk):
                 self.Conversion_progress_bar.set(1.0)
             except Exception as e:
                 print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
+                label_text = self.status_label.cget("text")
+                self.status_label.configure(text= "Failed when " + label_text + f"\n{e}\nPlease report the log.txt file if this error is unexpected!")
                 self.get_dirs_button.configure(state="normal")
                 messagebox.showinfo("Error",
                                     "An error occurred, Please check the log.txt file if this error is unexpected!")
