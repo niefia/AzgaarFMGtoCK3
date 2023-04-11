@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 
 # set scaling factor
-scaling_factor = 30
+scaling_factor = 0.01363525390625 #30
 # scaling_factor = float(sys.argv[1])
 # print the scaling factor
 print("Scaling factor used is: " + str(scaling_factor))
