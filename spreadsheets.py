@@ -58,7 +58,9 @@ def json_to_sheet(input_file_path, output_file_path):
         row = {
             "i": cell["i"],
             "name": cell["name"],
-            "diplomacy": cell["diplomacy"],
+            "diplomacy": cell.get("diplomacy", ""),
+            "form": cell.get("form", ""),
+            "formName": cell.get("formName", "")
         }
         states_rows.append(row)
 
@@ -158,7 +160,7 @@ def json_to_sheet(input_file_path, output_file_path):
     burgs_df = pd.DataFrame(burgs_rows, columns=["i", "cell", "name"])
 
     # Create data frames from the lists of dictionaries
-    states_df = pd.DataFrame(states_rows, columns=["i", "name","diplomacy"])
+    states_df = pd.DataFrame(states_rows, columns=["i", "name","diplomacy","form","formName"])
     provinces_df = pd.DataFrame(provinces_rows, columns=["i", "state", "center", "burg", "name", "formName", "fullName", "color"])
     cultures_df = pd.DataFrame(cultures_rows, columns=["i", "name","type","origin"])
     religion_df = pd.DataFrame(religions_rows, columns=["i", "name", "color", "culture", "type", "form", "deity", "center","origin"])
@@ -530,7 +532,94 @@ from PIL import Image
 import csv
 
 
-#remove_emoji_from_json("emoji.json", "noemoji.json")
+
+
+
+
+def state_to_goverment_type():
+    government_dict = {
+        "Monarchy": "feudal_government",
+        "Beylik": "clan_government",
+        "Despotate": "feudal_government",
+        "Dominion": "feudal_government",
+        "Duchy": "feudal_government",
+        "Emirate": "clan_government",
+        "Empire": "feudal_government",
+        "Horde": "tribal_government",
+        "Grand Duchy": "feudal_government",
+        "Heptarchy": "tribal_government",
+        "Khaganate": "tribal_government",
+        "Khanate": "tribal_government",
+        "Kingdom": "feudal_government",
+        "Marches": "feudal_government",
+        "Principality": "feudal_government",
+        "Satrapy": "mercenary_government",
+        "Shogunate": "feudal_government",
+        "Sultanate": "feudal_government",
+        "Tsardom": "feudal_government",
+        "Ulus": "tribal_government",
+        "Viceroyalty": "feudal_government",
+        "Republic": "republic_government",
+        "Chancellery": "republic_government",
+        "City-state": "republic_government",
+        "Diarchy": "feudal_government",
+        "Federation": "republic_government",
+        "Free City": "republic_government",
+        "Most Serene Republic": "republic_government",
+        "Oligarchy": "republic_government",
+        "Protectorate": "republic_government",
+        "Tetrarchy": "feudal_government",
+        "Trade Company": "mercenary_government",
+        "Triumvirate": "republic_government",
+        "Union": "republic_government",
+        "Confederacy": "republic_government",
+        "Confederation": "republic_government",
+        "Conglomerate": "republic_government",
+        "Commonwealth": "republic_government",
+        "League": "republic_government",
+        "United Hordes": "tribal_government",
+        "United Kingdom": "feudal_government",
+        "United Provinces": "republic_government",
+        "United Republic": "republic_government",
+        "United States": "republic_government",
+        "United Tribes": "tribal_government",
+        "Theocracy": "theocracy_government",
+        "Bishopric": "theocracy_government",
+        "Brotherhood": "holy_order_government",
+        "Caliphate": "theocracy_government",
+        "Diocese": "theocracy_government",
+        "Divine Duchy": "theocracy_government",
+        "Divine Grand Duchy": "theocracy_government",
+        "Divine Principality": "theocracy_government",
+        "Divine Kingdom": "theocracy_government",
+        "Divine Empire": "theocracy_government",
+        "Eparchy": "holy_order_government",
+        "Exarchate": "holy_order_government",
+        "Holy State": "holy_order_government",
+        "Imamah": "theocracy_government",
+        "Patriarchate": "holy_order_government",
+        "Anarchy": "republic_government",
+        "Commune": "republic_government",
+        "Community": "republic_government",
+        "Council": "republic_government",
+        "Free Territory": "republic_government",
+        "Tribes": "tribal_government"
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #remove_emoji_from_json("emoji.json", "noemoji.json")
 
 #colorRandom("input.geojson","output.geojson")
 

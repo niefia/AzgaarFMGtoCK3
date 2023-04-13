@@ -1,5 +1,7 @@
 import bookmark
+import csvspreadsheets
 import religion
+import riverGen
 import spreadsheets
 import rasterMaps
 import BFS
@@ -82,12 +84,14 @@ def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
                                       os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
         print("Generate ProvinceDef.xlsx file for Cells")
 
+        #csvspreadsheets.jsontocsv(output_dir)
 
 
 
 
 
-def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
+
+def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,CharGen_response, gamedir, output_dir,blur_amount):
 
 
         #DATA TO RASTERIZED IMAGE
@@ -138,8 +142,8 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
         modFiles.extract_zip_file(input_zip_file, output_dir)
 
         rasterMaps.heightmap_to_mountain_biome(output_dir)
-        rasterMaps.heightmap_blur_and_noise(output_dir)
-        rasterMaps.gradient_map(output_dir)
+        rasterMaps.heightmap_blur_and_noise(output_dir,blur_amount)
+        #rasterMaps.gradient_map(output_dir)
 
 
 def runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
@@ -297,6 +301,10 @@ def runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
 
 
 
+
+
+def GenerateRivers(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
+    rasterMaps.rivermap(output_dir)
 
 
 

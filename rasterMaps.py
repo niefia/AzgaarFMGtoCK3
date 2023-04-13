@@ -9,6 +9,7 @@ import ast
 from PIL import Image
 import numpy as np
 import random
+import riverGen
 
 # Declare global variables
 scale_factor = None
@@ -46,6 +47,12 @@ def calculate_scaling_variables(geojson_file):
     x_offset = (img_width - (max_x - min_x) / scale_factor) / 2
     y_offset = (img_height - (max_y - min_y) / scale_factor) / 2
 
+def rivermap(output_dir):
+    global scale_factor, min_x, max_x, min_y, max_y, x_offset, y_offset
+    scalee_factor = 35
+
+
+    riverGen.generate_river_files(output_dir,scalee_factor, min_x, max_x, min_y, max_y, x_offset, y_offset)
 
 
 
@@ -95,11 +102,12 @@ def heightmapAutoScaledfunc(geojson_file, output_file):
 
 #heightmapAutoScaledfunc("output.geojson",  "heightmap.png")
 
-def heightmap_blur_and_noise(output_dir):
+def heightmap_blur_and_noise(output_dir,blur_amount):
     import numpy as np
     from scipy.ndimage import gaussian_filter
     from PIL import Image, ImageFilter
-
+    if blur_amount == 0:
+        return  # skip the function if no blur chosen
 
     # Define Perlin noise function
     def noise(x, y):
@@ -117,7 +125,7 @@ def heightmap_blur_and_noise(output_dir):
     arr = np.array(img, dtype=np.float32)
 
     # Apply Gaussian blur to the array
-    arr = gaussian_filter(arr, sigma=7)
+    arr = gaussian_filter(arr, sigma=blur_amount)
 
     # Add Perlin noise to the array
     for i in range(arr.shape[0]):

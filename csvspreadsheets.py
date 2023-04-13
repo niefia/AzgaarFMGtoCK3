@@ -3,9 +3,10 @@ import json
 import os
 import csv
 
-def jsontocsv():
+def jsontocsv(output_dir):
     # Load the JSON data
-    with open('noemoji.json', 'r') as f:
+    noemojidir = os.path.join(output_dir, "noemoji.json")
+    with open(noemojidir, 'r') as f:
         data = json.load(f)
 
     # Create a Pandas DataFrame from the 'info' dictionary
@@ -61,7 +62,7 @@ def jsontocsv():
 
 
     # Create a folder to store the CSV files
-    folder_name = 'temp'
+    folder_name = os.path.join(output_dir, 'temp')
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 

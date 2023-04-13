@@ -195,6 +195,39 @@ class App(customtkinter.CTk):
             "Restart to update": "Zrestartuj dla aktualizacji",
 
         }
+        SPANISH = {
+            "mod_dir": "Directorio del Mod de Crusader Kings III:",
+            "map_filler_dir": "Directorio del relleno del mapa:",
+            "install_dir": "Directorio de instalación de Crusader Kings III:",
+            "scaling_factor_label": "Ingresar factor de escala (utilizado unicamente para el escalado manual):",
+            "mod_name": "Nombre del Mod",
+            "charGen": "Generar personajes que sostengan el nivel del titulo de estado?",
+            "runConverter": "Ejecutar Conversor",
+            "scaling_method": "Seleccionar el metodo de escalado",
+            "manualScaling": "Escalado manual",
+            "autoScaling": "Escalado automatico",
+            "yes": "si",
+            "no": "no",
+            "conversion": "Conversion",
+            "home": "Inicio",
+            "setup_frame_label": "Caminos y configuración",
+            "setup": "Configuración",
+            "Options": "Opciones",
+            "Guide": "Guia",
+            "FAQ": "FAQ",
+            "PH_Installdir": "El directorio de instalación de CK3 se encuentra en Steam>CK3>Propiedades>Archivos Locales>Navegar",
+            "PH_Modfolder": "C:/Usarios/USUARIO/Documentos/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "La carpeta donde has instalado la herramienta de llenado de mapa (Map Filler Tool)",
+            "Select Scaling Method": "Seleccionar metodo de escala",
+            "Start Conversion": "Comenzar conversion",
+            "Save Paths": "Guardar Caminos",
+            "Load Paths": "Cargar Caminos",
+            "Generate Characters": "Generar Personajes",
+            "DontGenerate": "No Generar Personajes",
+            "Restart to update": "Reiniciar para actualizar",
+
+        }
+
 
 
         LANGUAGE = ENGLISH
@@ -219,6 +252,9 @@ class App(customtkinter.CTk):
         elif language == 'POLISH':
             print("Language set to POLISH")
             LANGUAGE = POLISH
+        elif language == 'SPANISH':
+            print("Language set to SPANISH")
+            LANGUAGE = SPANISH
         else:
             print('No language found, setting to English as backup')
             LANGUAGE = ENGLISH
@@ -251,6 +287,12 @@ class App(customtkinter.CTk):
             modname = self.Mod_Name_Entry.get()
             generate_characters = self.Generate_Characters_Menu.get()
             CharGen_response = generate_characters.lower()
+            try:
+                blur_amount = int(self.blur_heightmap_entry.get())
+            except ValueError:
+                messagebox.showinfo("Error",
+                                    "Invalid value for Blur Radius, setting to 100k default of 7")
+                blur_amount = 7
 
             if scaling_method_str == "Manual Scaling":
                 scaling_method = 1
@@ -282,8 +324,12 @@ class App(customtkinter.CTk):
                 self.status_label.configure(text="Producing Map Rasters")
                 self.Conversion_progress_bar.set(0.3)
                 generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                      CharGen_response, gamedir, output_dir)
+                                      CharGen_response, gamedir, output_dir,blur_amount)
                 self.Conversion_progress_bar.set(0.35)
+                self.status_label.configure(text="Generating Rivers")
+                generate.GenerateRivers(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
+                               CharGen_response, gamedir, output_dir)
+                self.Conversion_progress_bar.set(0.37)
                 self.status_label.configure(text="Generating Religions Data")
                 generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                        CharGen_response, gamedir, output_dir)
@@ -302,6 +348,9 @@ class App(customtkinter.CTk):
                 self.Conversion_progress_bar.set(0.95)
                 generate.Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
+
+                #self.status_label.configure(text="Generating Rivers")
+                #generate.GenerateRivers(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,CharGen_response, gamedir, output_dir)
                 self.Conversion_progress_bar.set(0.97)
                 self.status_label.configure(text="Generating Character + Bookmark if selected")
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
@@ -311,7 +360,8 @@ class App(customtkinter.CTk):
             except Exception as e:
                 print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
                 label_text = self.status_label.cget("text")
-                self.status_label.configure(text= "Failed when " + label_text + f"\n{e}\nPlease report the log.txt file if this error is unexpected!")
+                self.status_label.configure(
+                    text="Failed when " + label_text + f"\n{e}\nPlease report the log.txt file if this error is unexpected!")
                 self.get_dirs_button.configure(state="normal")
                 messagebox.showinfo("Error",
                                     "An error occurred, Please check the log.txt file if this error is unexpected!")
@@ -511,7 +561,7 @@ class App(customtkinter.CTk):
         self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
 
         self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
-                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN",'POLISH'],
+                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN",'POLISH','SPANISH'],
                                                          command=update_language,
                                                          fg_color="#191919", button_color="#191919")
 
@@ -699,6 +749,19 @@ class App(customtkinter.CTk):
                                                                     fg_color="#4F4F4F", button_color="gray",
                                                                     command=optionmenu_callback)
         self.Generate_Characters_Menu.grid(row=6, column=0, padx=20, pady=20, sticky="n")
+
+        self.Generate_blur_radius_label = customtkinter.CTkLabel(self.third_frame,
+                                                                text="Blur Radius",
+                                                                font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.Generate_blur_radius_label.grid(row=7, column=0, padx=20, pady=20, sticky="n")
+
+
+        self.blur_heightmap_entry= customtkinter.CTkEntry(self.third_frame, width=284,
+                                                                     fg_color="transparent",
+                                                                     placeholder_text="7 for 100k, larger values for lower points number", )
+        self.blur_heightmap_entry.grid(row=8, column=0, padx=20, pady=20, sticky="n")
+
+
 
         # Conversion Frame
 

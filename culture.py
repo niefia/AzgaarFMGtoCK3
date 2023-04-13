@@ -138,8 +138,8 @@ def culture_gen(input_file, culture_dir):
             file.write(f"""{name} = {{
         color = {color}
         ethos = {ethos}
-        heritage = heritage_akan
-        language = language_kwa
+        heritage = heritage_west_germanic
+        language = language_anglic
         martial_custom = {martial}
         traditions = {{
             {traditions1}
