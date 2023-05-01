@@ -1,7 +1,7 @@
 from pandas.io import json
 
 class ScaleInfo:
-    def __init__(self, geojson_file):
+    def __init__(self, geojson_file, img_width = 8192, img_height = 4096):
         with open(geojson_file, "r") as f:
             data = json.load(f)
 
@@ -13,9 +13,6 @@ class ScaleInfo:
         min_y = min(coord[1] for poly in polygs for coords in poly["geometry"]["coordinates"] for coord in coords)
         max_y = max(coord[1] for poly in polygs for coords in poly["geometry"]["coordinates"] for coord in coords)
 
-        # Determine the width and height of the image
-        img_width = 8192
-        img_height = 4096
 
         # Calculate the scaling factor to fit the polygons in the output image
         self.scale_factor = max((max_x - min_x) / img_width, (max_y - min_y) / img_height)

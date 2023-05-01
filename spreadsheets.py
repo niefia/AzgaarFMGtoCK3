@@ -6,7 +6,7 @@ import hextorgb
 import openpyxl
 
 #removes emoji data from json, this is needed to avoid instability. previously jsonread.py
-def remove_emoji_from_json(input_file_path, output_file_path):
+def remove_emoji_from_json(input_file_path, output_file_path=None):
     emoji_pattern = re.compile("["
         u"\U0001F600-\U0001F64F"  # emoticons
         u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -20,8 +20,13 @@ def remove_emoji_from_json(input_file_path, output_file_path):
     for key, value in data.items():
         if isinstance(value, str):
             data[key] = emoji_pattern.sub(r'', value)
-    with open(output_file_path, 'w') as json_file:
-        json.dump(data, json_file)
+    if output_file_path is None:
+        # Overwrite the input file
+        with open(input_file_path, 'w', encoding='utf-8') as json_file:
+            json.dump(data, json_file)
+    else:
+        with open(output_file_path, 'w', encoding='utf-8') as json_file:
+            json.dump(data, json_file)
 
 #Adds unique colour to every barony. For cells generation method
 def colorRandom(input_file, output_file):

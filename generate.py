@@ -20,13 +20,13 @@ import modFiles
 
 
 
-def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
+def runGenExcel(ck3_mod_dir, azgaar_input_directory, conversion_mod_dir, output_dir):
 
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        modFiles.modFile(modname, output_dir, modpath)
+        modFiles.modFile(conversion_mod_dir, output_dir, ck3_mod_dir)
         #CREATES DIRECTORIES
 
         # Create "map_data" subfolder
@@ -49,17 +49,20 @@ def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
         if not os.path.exists(map_data_dir):
             os.makedirs(map_data_dir)
 
+        # Resolve files
+        azgaar_geojson = os.path.join(azgaar_input_directory, "input.geojson")
+
 
         #RUN SPREADSHEET GENERATORS
 
-        # Remove emoji from JSON file
-        spreadsheets.remove_emoji_from_json(os.path.join(modpath, "input.json"),
+        # Remove emoji from JSON file and save to new file in output directory
+        spreadsheets.remove_emoji_from_json(os.path.join(azgaar_geojson),
                                             os.path.join(output_dir, "noemoji.json"))
         print("Emoji data removed from json")
 
 
         # Assign colors to Baronies in GeoJSON file
-        spreadsheets.colorRandom(os.path.join(modpath, "input.geojson"), os.path.join(output_dir, "output.geojson"))
+        spreadsheets.colorRandom(azgaar_geojson, os.path.join(output_dir, "output.geojson"))
         print("Colors Assigned to Baronies for Cells method")
 
         # Convert JSON to Excel spreadsheet
@@ -87,7 +90,7 @@ def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
 
 
 
-def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
+def runGenRaster(ck3_mod_dir, scaling_method, scaling_factor, output_dir):
 
 
         #DATA TO RASTERIZED IMAGE
@@ -133,7 +136,7 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
                    os.path.join(output_dir, 'gfx/map/terrain'))
 
 
-        input_zip_file = os.path.join(modpath, "tcs.zip")
+        input_zip_file = os.path.join(ck3_mod_dir, "tcs.zip")
         # Call the extract_zip_file function
         modFiles.extract_zip_file(input_zip_file, output_dir)
 

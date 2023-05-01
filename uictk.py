@@ -10,6 +10,9 @@ import threading
 import sys
 from PIL import Image
 
+import scaleHelper
+import spreadsheets
+
 if not os.path.exists('language.txt'):
     with open('language.txt', 'w') as f:
         f.write('')
@@ -40,6 +43,7 @@ class App(customtkinter.CTk):
         ENGLISH = {
             "mod_dir": "Crusader Kings III Mod Directory:",
             "map_filler_dir": "Map Filler Directory:",
+            "azgaar_dir": "Azgaar's Fantasy Map Generator Output Directory:",
             "install_dir": "Crusader Kings III Install Directory:",
             "scaling_factor_label": "Enter Scaling Factor (only used for Manual Scaling):",
             "mod_name": "Mod Name",
@@ -60,6 +64,7 @@ class App(customtkinter.CTk):
             "PH_Installdir":"C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III",
             "PH_Modfolder": "C:/Users/USERNAME/Documents/Paradox Interactive/Crusader Kings III/mod",
             "PH_MapFiller": "The Folder you've installed Map Filler Tool into",
+            "PH_Azgaar": "The Folder you've saved your AzgaarFMG output into",
             "Select Scaling Method": "Select Scaling Method",
             "Start Conversion": "Start Conversion",
             "Save Paths":"Save Paths",
@@ -244,23 +249,19 @@ class App(customtkinter.CTk):
             self.loading_wheel.grid(row=4, column=0, padx=20, pady=20, sticky="n")
             self.Conversion_button.configure(state="disabled")
             self.Conversion_progress_bar.set(0.1)
-            modpath = self.CK3_Mod_Path_Entry.get()
-            mapfilldir = self.CK3_Map_Filler_Tool_Path_Entry.get()
+            CK3_mod_directory = self.CK3_Mod_Path_Entry.get()
+            mapfiller_directory = self.CK3_Map_Filler_Tool_Path_Entry.get()
             installdir = self.CK3_Game_Path_Entry.get()
-            scaling_method_str = self.Options_Scaling_Menu.get()
+            azgaar_input_directory = self.Azgaar_Path_Entry.get()
             modname = self.Mod_Name_Entry.get()
             generate_characters = self.Generate_Characters_Menu.get()
             CharGen_response = generate_characters.lower()
 
-            if scaling_method_str == "Manual Scaling":
-                scaling_method = 1
-                scaling_factor = self.Manual_Scaling_Entry.get()
-                scaling_factor = int(scaling_factor)
-
-            else:
-                scaling_method = 2
-                scaling_factor = 50
-                scaling_factor = int(scaling_factor)
+            # Lemur: I removed the option to do manual scaling, should not be supported anymore
+            # TODO Remove scaling completely from this section
+            scaling_method = 2
+            scaling_factor = 50
+            scaling_factor = int(scaling_factor)
 
             if generate_characters == "Generate Characters":
                 CharGen_response = "yes"
@@ -268,49 +269,75 @@ class App(customtkinter.CTk):
                 CharGen_response = "no"
 
             gamedir = os.path.join(installdir, 'game')
-            output_dir = os.path.join(modpath, modname)
+            converter_mod_directory = os.path.join(CK3_mod_directory, modname)
+
+
+
+            # Resolve file
+            azgaar_geojson = os.path.join(azgaar_input_directory, "input.geojson")
+
+            # Sanitize the file
+            # Remove emoji from file and save
+            spreadsheets.remove_emoji_from_json(azgaar_geojson)
+            print("Emoji data removed from json")
             try:
-                generate.printValues(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, output_dir)
-                # Update the progress bar
+
+                #Generate Scaling info
+                mod_scale_info = scaleHelper.ScaleInfo(geojson_file=azgaar_geojson)
+                generate.printValues(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, converter_mod_directory)
+
+
                 self.Conversion_progress_bar.set(0.12)
                 self.status_label.configure(text="Extracting JSON & Geojson to spreadsheet")
+                generate.runGenExcel(ck3_mod_dir=CK3_mod_directory,
+                                     conversion_mod_dir=modname,
+                                     output_dir=converter_mod_directory,
+                                     azgaar_input_directory=azgaar_input_directory)
+                self.status_label.configure(text="Spreadsheets Complete")
+                self.status_label.configure(text="Producing Map Images")
 
-                generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, output_dir)
-                self.status_label.configure(text="Spreadsheets Complte")
-                self.status_label.configure(text="Producing Map Rasters")
                 self.Conversion_progress_bar.set(0.3)
-                generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                      CharGen_response, gamedir, output_dir)
+                generate.runGenRaster(ck3_mod_dir=CK3_mod_directory,
+                                      scaling_method=scaling_method,
+                                      scaling_factor=scaling_factor,
+                                      output_dir=converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.35)
                 self.status_label.configure(text="Generating Religions Data")
-                generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                       CharGen_response, gamedir, output_dir)
+                generate.runGenRelCult(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                       CharGen_response, gamedir, converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.4)
                 self.status_label.configure(text="Running BFS for Barony Generation from Cells")
-                generate.runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                   CharGen_response, gamedir, output_dir)
+                generate.runGenBFS(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                   CharGen_response, gamedir, converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.7)
                 self.status_label.configure(text="Running Map Filler tool")
-                generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                    CharGen_response, gamedir, output_dir)
+                generate.runMapFill(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                    CharGen_response, gamedir, converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.9)
                 self.status_label.configure(text="Generating Paper Map")
-                generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                    CharGen_response, gamedir, output_dir)
+                generate.runGenPaper(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.95)
-                generate.Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                    CharGen_response, gamedir, output_dir)
+                generate.Terrains(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                  CharGen_response, gamedir, converter_mod_directory)
+
                 self.Conversion_progress_bar.set(0.97)
                 self.status_label.configure(text="Generating Character + Bookmark if selected")
-                generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, output_dir)
+                generate.runCharBook(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                     CharGen_response, gamedir, converter_mod_directory)
                 self.status_label.configure(text="Done")
+
                 self.Conversion_progress_bar.set(1.0)
             except Exception as e:
                 print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
-                self.get_dirs_button.configure(state="normal")
+                # Set label to error message
+                self.status_label.configure(text=e)
                 messagebox.showinfo("Error",
                                     "An error occurred, Please check the log.txt file if this error is unexpected!")
                 # Wait for user input before closing
@@ -323,7 +350,7 @@ class App(customtkinter.CTk):
             self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
 
 
-            print(installdir,modpath,mapfilldir,scaling_factor,scaling_method_str,modname,generate_characters,CharGen_response,scaling_method_str)  # or return game_path
+            print(installdir, CK3_mod_directory, mapfiller_directory, scaling_factor, scaling_method_str, modname, generate_characters, CharGen_response, scaling_method_str)  # or return game_path
 
         def run_conv_thread():
             # Create a new thread to run the function
@@ -387,16 +414,17 @@ class App(customtkinter.CTk):
            # Saves the paths to a file
 
         def save_paths():
-            Entry1_value = self.CK3_Game_Path_Entry.get()
-            Entry2_value = self.CK3_Mod_Path_Entry.get()
-            Entry3_value = self.CK3_Map_Filler_Tool_Path_Entry.get()
+            Game_path = self.CK3_Game_Path_Entry.get()
+            Mod_path = self.CK3_Mod_Path_Entry.get()
+            MapFiller_path = self.CK3_Map_Filler_Tool_Path_Entry.get()
+            Azgaar_files_path = self.Azgaar_Path_Entry.get()
 
             # Get the filename to save the data
             filename = filedialog.asksaveasfilename(initialdir=current_dir, defaultextension='.txt', initialfile='paths.txt')
             if filename:
                 # Save the values to the file
                 with open(filename, 'w') as f:
-                    f.write(f'{Entry1_value}, {Entry2_value}, {Entry3_value}')
+                    f.write(f'{Game_path}, {Mod_path}, {MapFiller_path}, {Azgaar_files_path}')
 
 
 
@@ -409,16 +437,18 @@ class App(customtkinter.CTk):
                 # Read the saved values from the file
                 with open(filename, 'r') as f:
                     data = f.read().split(', ')
-                    Entry1_value, Entry2_value, Entry3_value = data
+                    Game_path, Mod_path, MapFiller_path, Azgaar_files_path = data
 
                 # Display the loaded values in the entry widgets
                 self.CK3_Game_Path_Entry.delete(0, tk.END)
                 self.CK3_Mod_Path_Entry.delete(0, tk.END)
                 self.CK3_Map_Filler_Tool_Path_Entry.delete(0, tk.END)
+                self.Azgaar_Path_Entry.delete(0, tk.END)
 
-                self.CK3_Game_Path_Entry.insert(0, Entry1_value)
-                self.CK3_Mod_Path_Entry.insert(0, Entry2_value)
-                self.CK3_Map_Filler_Tool_Path_Entry.insert(0, Entry3_value)
+                self.CK3_Game_Path_Entry.insert(0, Game_path)
+                self.CK3_Mod_Path_Entry.insert(0, Mod_path)
+                self.CK3_Map_Filler_Tool_Path_Entry.insert(0, MapFiller_path)
+                self.Azgaar_Path_Entry.insert(0, Azgaar_files_path)
 
 
         # Light and Dark mode Color Templates
@@ -567,6 +597,9 @@ class App(customtkinter.CTk):
 
 
         # Setup Frame
+
+        y_padding = 5
+
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.second_frame.grid_columnconfigure(0, weight=1)
 
@@ -580,11 +613,11 @@ class App(customtkinter.CTk):
 
         self.CK3_Game_Path_Label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["install_dir"],
                                                           font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.CK3_Game_Path_Label.grid(row=1, column=0, padx=20, pady=20, sticky="w")
+        self.CK3_Game_Path_Label.grid(row=1, column=0, padx=20, pady=y_padding, sticky="w")
 
         self.CK3_Game_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
                                                           placeholder_text=LANGUAGE["PH_Installdir"])
-        self.CK3_Game_Path_Entry.grid(row=2, column=0, padx=20, pady=20, sticky="nw")
+        self.CK3_Game_Path_Entry.grid(row=2, column=0, padx=20, pady=y_padding + 5, sticky="nw")
 
         self.CK3_Game_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
                                                                    border_spacing=1,
@@ -594,17 +627,17 @@ class App(customtkinter.CTk):
                                                                    border_color="gray", anchor="nw",
                                                                    command=lambda: browse_directory(
                                                                        self.CK3_Game_Path_Entry))
-        self.CK3_Game_Path_Browse_Button.grid(row=2, column=0, padx=10, pady=15, sticky="ne")
+        self.CK3_Game_Path_Browse_Button.grid(row=2, column=0, padx=10, pady=y_padding, sticky="ne")
 
         # CK3 Mod Folder Path
 
         self.CK3_Mod_Path_Label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["mod_dir"],
                                                          font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.CK3_Mod_Path_Label.grid(row=3, column=0, padx=20, pady=20, sticky="w")
+        self.CK3_Mod_Path_Label.grid(row=3, column=0, padx=20, pady=y_padding, sticky="w")
 
         self.CK3_Mod_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
                                                          placeholder_text=LANGUAGE["PH_Modfolder"], )
-        self.CK3_Mod_Path_Entry.grid(row=4, column=0, padx=20, pady=20, sticky="nw")
+        self.CK3_Mod_Path_Entry.grid(row=4, column=0, padx=20, pady=y_padding + 5, sticky="nw")
 
         self.CK3_Mod_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
                                                                   border_spacing=1,
@@ -614,19 +647,40 @@ class App(customtkinter.CTk):
                                                                   border_color="gray", anchor="nw",
                                                                   command=lambda: browse_directory(
                                                                       self.CK3_Mod_Path_Entry))
-        self.CK3_Mod_Path_Browse_Button.grid(row=4, column=0, padx=10, pady=15, sticky="ne")
+        self.CK3_Mod_Path_Browse_Button.grid(row=4, column=0, padx=10, pady=y_padding, sticky="ne")
+
+        # Azgaar Files Path
+
+        self.Azgaar_Path_Label = customtkinter.CTkLabel(self.second_frame, text=LANGUAGE["azgaar_dir"],
+                                                            font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.Azgaar_Path_Label.grid(row=5, column=0, padx=20, pady=y_padding, sticky="w")
+
+        self.Azgaar_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600, fg_color="transparent",
+                                                            placeholder_text=LANGUAGE["PH_Azgaar"], )
+        self.Azgaar_Path_Entry.grid(row=6, column=0, padx=20, pady=y_padding+5, sticky="nw")
+
+        self.Azgaar_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
+                                                                        border_spacing=1,
+                                                                        fg_color="transparent",
+                                                                        text_color=text_color_template,
+                                                                        hover="false", text="", image=self.browse_image,
+                                                                        border_color="gray", anchor="nw",
+                                                                        command=lambda: browse_directory(
+                                                                            self.Azgaar_Path_Entry))
+        self.Azgaar_Path_Browse_Button.grid(row=6, column=0, padx=10, pady=y_padding, sticky="ne")
+
 
         # Map Filler Tool Path
 
         self.CK3_Map_Filler_Tool_Path_Label = customtkinter.CTkLabel(self.second_frame,
                                                                      text=LANGUAGE["map_filler_dir"],
                                                                      font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.CK3_Map_Filler_Tool_Path_Label.grid(row=5, column=0, padx=20, pady=20, sticky="w")
+        self.CK3_Map_Filler_Tool_Path_Label.grid(row=7, column=0, padx=20, pady=y_padding, sticky="w")
 
         self.CK3_Map_Filler_Tool_Path_Entry = customtkinter.CTkEntry(self.second_frame, width=600,
                                                                      fg_color="transparent",
                                                                      placeholder_text=LANGUAGE["PH_MapFiller"], )
-        self.CK3_Map_Filler_Tool_Path_Entry.grid(row=6, column=0, padx=20, pady=20, sticky="nw")
+        self.CK3_Map_Filler_Tool_Path_Entry.grid(row=8, column=0, padx=20, pady=y_padding+5, sticky="nw")
 
         self.CK3_Map_Filler_Tool_Path_Browse_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0,
                                                                               height=20,
@@ -638,7 +692,7 @@ class App(customtkinter.CTk):
                                                                               border_color="gray", anchor="nw",
                                                                               command=lambda: browse_directory(
                                                                                   self.CK3_Map_Filler_Tool_Path_Entry))
-        self.CK3_Map_Filler_Tool_Path_Browse_Button.grid(row=6, column=0, padx=10, pady=15, sticky="ne")
+        self.CK3_Map_Filler_Tool_Path_Browse_Button.grid(row=8, column=0, padx=10, pady=y_padding, sticky="ne")
 
         # Button for Saving Paths
 
@@ -651,7 +705,7 @@ class App(customtkinter.CTk):
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
                                                          command=save_paths, )
-        self.Save_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="se")
+        self.Save_Paths_Button.grid(row=9, column=0, padx=10, pady=15, sticky="se")
 
         self.Load_Paths_Button = customtkinter.CTkButton(self.second_frame, corner_radius=0, height=20,
                                                          border_spacing=1,
@@ -662,7 +716,7 @@ class App(customtkinter.CTk):
                                                          image=self.Save_Paths_Image,
                                                          border_color="gray", anchor="se",
                                                          command=load_paths,)
-        self.Load_Paths_Button.grid(row=7, column=0, padx=10, pady=15, sticky="sw")
+        self.Load_Paths_Button.grid(row=9, column=0, padx=10, pady=15, sticky="sw")
 
         # Options Frame
         self.third_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -672,19 +726,8 @@ class App(customtkinter.CTk):
                                                     font=customtkinter.CTkFont(size=30, weight="bold"))
         self.Options_Label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
 
-        self.Options_Scaling_Label = customtkinter.CTkLabel(self.third_frame, text=LANGUAGE["Select Scaling Method"],
-                                                            font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.Options_Scaling_Label.grid(row=1, column=0, padx=20, pady=20, sticky="n")
-
         # To show the default value of optionmenu that don't cause issues
-        Scaling_var = customtkinter.StringVar(value="Automatic Scaling")
         Charactergen_var = customtkinter.StringVar(value="Don't Generate Characters")
-
-        self.Options_Scaling_Menu = customtkinter.CTkOptionMenu(self.third_frame, variable=Scaling_var,
-                                                                values=["Manual Scaling", "Automatic Scaling"],
-                                                                fg_color="#4F4F4F", button_color="gray",
-                                                                command=optionmenu_callback)
-        self.Options_Scaling_Menu.grid(row=2, column=0, padx=20, pady=20, sticky="n")
 
         self.Generate_Characters_Label = customtkinter.CTkLabel(self.third_frame,
                                                                 text=LANGUAGE["charGen"],
