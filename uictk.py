@@ -275,74 +275,74 @@ class App(customtkinter.CTk):
 
             # Resolve file
             azgaar_geojson = os.path.join(azgaar_input_directory, "input.geojson")
-
+            # TODO: The above file shoudl be found on file type and not file name + type
             # Sanitize the file
             # Remove emoji from file and save
             spreadsheets.remove_emoji_from_json(azgaar_geojson)
             print("Emoji data removed from json")
-            try:
+            # try:
 
-                #Generate Scaling info
-                mod_scale_info = scaleHelper.ScaleInfo(geojson_file=azgaar_geojson)
-                generate.printValues(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, converter_mod_directory)
+            #Generate Scaling info
+            mod_scale_info = scaleHelper.ScaleInfo(geojson_file=azgaar_geojson)
+            generate.printValues(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                 CharGen_response, gamedir, converter_mod_directory)
 
 
-                self.Conversion_progress_bar.set(0.12)
-                self.status_label.configure(text="Extracting JSON & Geojson to spreadsheet")
-                generate.runGenExcel(ck3_mod_dir=CK3_mod_directory,
-                                     conversion_mod_dir=modname,
-                                     output_dir=converter_mod_directory,
-                                     azgaar_input_directory=azgaar_input_directory)
-                self.status_label.configure(text="Spreadsheets Complete")
-                self.status_label.configure(text="Producing Map Images")
+            self.Conversion_progress_bar.set(0.12)
+            self.status_label.configure(text="Extracting JSON & Geojson to spreadsheet")
+            generate.runGenExcel(ck3_mod_dir=CK3_mod_directory,
+                                 conversion_mod_dir=modname,
+                                 new_mod_directory=converter_mod_directory,
+                                 azgaar_input_directory=azgaar_input_directory)
+            self.status_label.configure(text="Spreadsheets Complete")
+            self.status_label.configure(text="Producing Map Images")
 
-                self.Conversion_progress_bar.set(0.3)
-                generate.runGenRaster(ck3_mod_dir=CK3_mod_directory,
-                                      scaling_method=scaling_method,
-                                      scaling_factor=scaling_factor,
-                                      output_dir=converter_mod_directory)
+            self.Conversion_progress_bar.set(0.3)
+            generate.runGenRaster(ck3_mod_dir=CK3_mod_directory,
+                                  scaling_method=scaling_method,
+                                  scaling_factor=scaling_factor,
+                                  output_dir=converter_mod_directory)
 
-                self.Conversion_progress_bar.set(0.35)
-                self.status_label.configure(text="Generating Religions Data")
-                generate.runGenRelCult(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                       CharGen_response, gamedir, converter_mod_directory)
-
-                self.Conversion_progress_bar.set(0.4)
-                self.status_label.configure(text="Running BFS for Barony Generation from Cells")
-                generate.runGenBFS(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+            self.Conversion_progress_bar.set(0.35)
+            self.status_label.configure(text="Generating Religions Data")
+            generate.runGenRelCult(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
                                    CharGen_response, gamedir, converter_mod_directory)
 
-                self.Conversion_progress_bar.set(0.7)
-                self.status_label.configure(text="Running Map Filler tool")
-                generate.runMapFill(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                    CharGen_response, gamedir, converter_mod_directory)
+            self.Conversion_progress_bar.set(0.4)
+            self.status_label.configure(text="Running BFS for Barony Generation from Cells")
+            generate.runGenBFS(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                               CharGen_response, gamedir, converter_mod_directory)
 
-                self.Conversion_progress_bar.set(0.9)
-                self.status_label.configure(text="Generating Paper Map")
-                generate.runGenPaper(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, converter_mod_directory)
+            self.Conversion_progress_bar.set(0.7)
+            self.status_label.configure(text="Running Map Filler tool")
+            generate.runMapFill(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                CharGen_response, gamedir, converter_mod_directory)
 
-                self.Conversion_progress_bar.set(0.95)
-                generate.Terrains(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                  CharGen_response, gamedir, converter_mod_directory)
+            self.Conversion_progress_bar.set(0.9)
+            self.status_label.configure(text="Generating Paper Map")
+            generate.runGenPaper(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                 CharGen_response, gamedir, converter_mod_directory)
 
-                self.Conversion_progress_bar.set(0.97)
-                self.status_label.configure(text="Generating Character + Bookmark if selected")
-                generate.runCharBook(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
-                                     CharGen_response, gamedir, converter_mod_directory)
-                self.status_label.configure(text="Done")
+            self.Conversion_progress_bar.set(0.95)
+            generate.Terrains(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                              CharGen_response, gamedir, converter_mod_directory)
 
-                self.Conversion_progress_bar.set(1.0)
-            except Exception as e:
-                print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
-                # Set label to error message
-                self.status_label.configure(text=e)
-                messagebox.showinfo("Error",
-                                    "An error occurred, Please check the log.txt file if this error is unexpected!")
-                # Wait for user input before closing
-                input("Press Enter to exit...")
-                sys.exit(1)  # exit with an error code
+            self.Conversion_progress_bar.set(0.97)
+            self.status_label.configure(text="Generating Character + Bookmark if selected")
+            generate.runCharBook(CK3_mod_directory, mapfiller_directory, installdir, scaling_method, scaling_factor, modname,
+                                 CharGen_response, gamedir, converter_mod_directory)
+            self.status_label.configure(text="Done")
+
+            self.Conversion_progress_bar.set(1.0)
+            # except Exception as e:
+            #     print(f"An error occurred, please report the log.txt file if this error is unexpected: {e}")
+            #     # Set label to error message
+            #     self.status_label.configure(text=e)
+            #     messagebox.showinfo("Error",
+            #                         "An error occurred, Please check the log.txt file if this error is unexpected!")
+            #     # Wait for user input before closing
+            #     input("Press Enter to exit...")
+            #     sys.exit(1)  # exit with an error code
 
             messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
             self.Conversion_button.configure(state="normal")

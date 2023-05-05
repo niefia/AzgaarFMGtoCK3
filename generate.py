@@ -14,75 +14,72 @@ import pandas as pd
 import xlwt
 import hextorgb
 import modFiles
+import shutil
+
+from Utills import converter_file_utills
 
 
+def runGenExcel(ck3_mod_dir, azgaar_input_directory, conversion_mod_dir, new_mod_directory):
 
 
+        if not os.path.exists(new_mod_directory):
+            os.makedirs(new_mod_directory)
 
-
-def runGenExcel(ck3_mod_dir, azgaar_input_directory, conversion_mod_dir, output_dir):
-
-
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        modFiles.modFile(conversion_mod_dir, output_dir, ck3_mod_dir)
+        modFiles.modFile(conversion_mod_dir, new_mod_directory, ck3_mod_dir)
         #CREATES DIRECTORIES
 
         # Create "map_data" subfolder
-        map_data_dir = os.path.join(output_dir, "map_data")
+        map_data_dir = os.path.join(new_mod_directory, "map_data")
         if not os.path.exists(map_data_dir):
             os.makedirs(map_data_dir)
 
         # Create "map_data" subfolder
-        map_data_dir = os.path.join(output_dir, "_mapFiller")
+        map_data_dir = os.path.join(new_mod_directory, "_mapFiller")
         if not os.path.exists(map_data_dir):
                 os.makedirs(map_data_dir)
 
         # Create "gfx/map/terrain/" subfolder
-        map_data_dir = os.path.join(output_dir, "gfx/map/terrain/")
+        map_data_dir = os.path.join(new_mod_directory, "gfx/map/terrain/")
         if not os.path.exists(map_data_dir):
                 os.makedirs(map_data_dir)
 
             # Create "gfx/map/terrain/" subfolder
-        map_data_dir = os.path.join(output_dir, "gfx/map/terrain/")
+        map_data_dir = os.path.join(new_mod_directory, "gfx/map/terrain/")
         if not os.path.exists(map_data_dir):
             os.makedirs(map_data_dir)
 
-        # Resolve files
-        azgaar_geojson = os.path.join(azgaar_input_directory, "input.geojson")
+        # Resolve files and make working copies so that the source files are not modified
+        azgaar_geojson = converter_file_utills.save_working_copy(os.path.join(azgaar_input_directory, "input.geojson"))
+        azgaar_JSON =  converter_file_utills.save_working_copy(os.path.join(azgaar_input_directory, "input.json"))
 
 
         #RUN SPREADSHEET GENERATORS
 
-        # Remove emoji from JSON file and save to new file in output directory
-        spreadsheets.remove_emoji_from_json(os.path.join(azgaar_geojson),
-                                            os.path.join(output_dir, "noemoji.json"))
+        # Purge emoji's from JSON file (Asgaar's map generator uses emoji's for lots of stuff)
+        spreadsheets.remove_emoji_from_json(azgaar_JSON)
         print("Emoji data removed from json")
 
-
         # Assign colors to Baronies in GeoJSON file
-        spreadsheets.colorRandom(azgaar_geojson, os.path.join(output_dir, "output.geojson"))
+        spreadsheets.colorRandom(azgaar_geojson)
         print("Colors Assigned to Baronies for Cells method")
 
         # Convert JSON to Excel spreadsheet
-        spreadsheets.json_to_sheet(os.path.join(output_dir, "noemoji.json"), os.path.join(output_dir, "combined_data.xlsx"))
+        spreadsheets.json_to_sheet(azgaar_JSON, os.path.join(new_mod_directory, "combined_data.xlsx"))
         print("Json extracted")
 
         # Convert GeoJSON to Excel spreadsheet
-        spreadsheets.cells_geojson_to_sheet(os.path.join(output_dir, "output.geojson"),
-                                            os.path.join(output_dir, "cellsData.xlsx"))
+        spreadsheets.cells_geojson_to_sheet(azgaar_geojson, os.path.join(new_mod_directory, "cellsData.xlsx"))
         print("Geojson extracted")
 
         # Correct cell names in Excel spreadsheet
-        spreadsheets.nameCorrector(os.path.join(output_dir, "cellsData.xlsx"),
-                                   os.path.join(output_dir, "combined_data.xlsx"),
-                                   os.path.join(output_dir, "updated_file.xlsx"))
+        spreadsheets.nameCorrector(os.path.join(new_mod_directory, "cellsData.xlsx"),
+                                   os.path.join(new_mod_directory, "combined_data.xlsx"),
+                                   os.path.join(new_mod_directory, "updated_file.xlsx"))
         print("Geojson data updated with Json names")
 
         # Generate ProvinceDef.xlsx file for Cells
-        spreadsheets.provinceDefCells(os.path.join(output_dir, "updated_file.xlsx"),
-                                      os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
+        spreadsheets.provinceDefCells(os.path.join(new_mod_directory, "updated_file.xlsx"),
+                                      os.path.join(new_mod_directory, "_mapFiller/provinceDef.xlsx"))
         print("Generate ProvinceDef.xlsx file for Cells")
 
 

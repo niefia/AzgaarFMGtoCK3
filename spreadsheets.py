@@ -20,6 +20,7 @@ def remove_emoji_from_json(input_file_path, output_file_path=None):
     for key, value in data.items():
         if isinstance(value, str):
             data[key] = emoji_pattern.sub(r'', value)
+    # If no output file is specified, overwrite the input file
     if output_file_path is None:
         # Overwrite the input file
         with open(input_file_path, 'w', encoding='utf-8') as json_file:
@@ -29,16 +30,14 @@ def remove_emoji_from_json(input_file_path, output_file_path=None):
             json.dump(data, json_file)
 
 #Adds unique colour to every barony. For cells generation method
-def colorRandom(input_file, output_file):
-
-
-    with open(input_file) as f:
+def colorRandom(file_path):
+    with open(file_path, 'r') as f:
         data = json.load(f)
 
     for feature in data['features']:
         feature['properties']['color'] = hextorgb.color_gen()
 
-    with open(output_file, 'w') as f:
+    with open(file_path, 'w') as f:
         json.dump(data, f)
 
 #export the removed emoji json to spreadsheet, previously jsontoxlsprovicnes.py
@@ -294,6 +293,10 @@ def cells_geojson_to_sheet(input_file_path, output_file_path):
 
     df = pd.concat([properties_df, geometries_df], axis=1)
 
+    # Make sure that the renamings are present in teh document, if it fails we might be working with the wrong document
+    assert {'state', 'province', 'religion', 'culture'} <= set(
+        df.columns), "One or more of the columns 'state', 'province', 'religion', 'culture' do not exist in the dataframe."
+
     # Rename the columns "state" to "Kingdom" and "province" to "County"
     df.rename(columns={'state': 'Kingdom', 'province': 'County', 'religion': 'Religion', 'culture': 'Culture'},
               inplace=True)
@@ -342,7 +345,7 @@ def cells_geojson_to_sheet(input_file_path, output_file_path):
     df.to_excel(output_file_path, index=False)
 
 
-#Takes names from the output json data and combined with cells data to generate the provinceDef.xlsx
+#Takes names from the output json data and combined with cells data to generate the provinceDef.xlsx used by the MapFiller
 def nameCorrector(cells_file_path, combined_file_path, updated_file_path):
     # Load the first Excel file into a pandas DataFrame
     df1 = pd.read_excel(cells_file_path)
