@@ -176,8 +176,6 @@ def json_to_sheet(input_file_path, output_file_path):
         religion_df.to_excel(writer, sheet_name="religion", index=False)
         burgs_df.to_excel(writer, sheet_name="burgs", index=False)
 
-#json_to_sheet('noemoji.json','ouput.xlsx')
-
 def combined_data_empires(combined_data):
     # Load the workbook
     workbook = openpyxl.load_workbook(combined_data)
