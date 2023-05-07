@@ -100,13 +100,11 @@ def heightmap_blur_and_noise(output_dir):
     from scipy.ndimage import gaussian_filter
     from PIL import Image, ImageFilter
 
-
     # Define Perlin noise function
     def noise(x, y):
         n = int(x + y * 57)
         n = (n << 13) ^ n
         return (1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0)
-
 
     # Load the image
     heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
@@ -342,18 +340,7 @@ def provinceMapBFSAutoScaled(file_path, output_folder):
     img.save(output_folder)
 
 
-
-
-
-
-
-
-
-
-
 #provinceMapBFSAutoScaled('BFSoutput.xlsx', 'provincesAS.png')
-
-
 
 
 

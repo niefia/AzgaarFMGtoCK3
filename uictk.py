@@ -25,8 +25,6 @@ else:
 # All CustomTkinter Code
 class App(customtkinter.CTk):
 
-
-
     def __init__(self):
         super().__init__()
         self.title("AzgaarFMG-to-CK3 Map Converter")
@@ -275,37 +273,46 @@ class App(customtkinter.CTk):
                 # Update the progress bar
                 self.Conversion_progress_bar.set(0.12)
                 self.status_label.configure(text="Extracting JSON & Geojson to spreadsheet")
+                print(time.ctime(), "Extracting JSON & Geojson to spreadsheet")
 
                 generate.runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
-                self.status_label.configure(text="Spreadsheets Complte")
+                self.status_label.configure(text="Spreadsheets Complete")
+                print(time.ctime(), "Spreadsheets Complete")
                 self.status_label.configure(text="Producing Map Rasters")
                 self.Conversion_progress_bar.set(0.3)
                 generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                       CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runGenRaster done")
                 self.Conversion_progress_bar.set(0.35)
                 self.status_label.configure(text="Generating Religions Data")
                 generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                        CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runGenRelCult done")
                 self.Conversion_progress_bar.set(0.4)
                 self.status_label.configure(text="Running BFS for Barony Generation from Cells")
                 generate.runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                    CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runGenBFS done")
                 self.Conversion_progress_bar.set(0.7)
                 self.status_label.configure(text="Running Map Filler tool")
                 generate.runMapFill(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runMapFill done")
                 self.Conversion_progress_bar.set(0.9)
                 self.status_label.configure(text="Generating Paper Map")
                 generate.runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runGenPaper done")
                 self.Conversion_progress_bar.set(0.95)
                 generate.Terrains(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                     CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.Terrains done")
                 self.Conversion_progress_bar.set(0.97)
                 self.status_label.configure(text="Generating Character + Bookmark if selected")
                 generate.runCharBook(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                      CharGen_response, gamedir, output_dir)
+                print(time.ctime(), "generate.runCharBook done")
                 self.status_label.configure(text="Done")
                 self.Conversion_progress_bar.set(1.0)
             except Exception as e:
@@ -317,11 +324,11 @@ class App(customtkinter.CTk):
                 input("Press Enter to exit...")
                 sys.exit(1)  # exit with an error code
 
+            print(time.ctime(), "Conversion Complete")
             messagebox.showinfo("Conversion Complete", "The conversion process is complete!")
             self.Conversion_button.configure(state="normal")
             self.loading_wheel.grid_forget()
             self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
-
 
             print(installdir,modpath,mapfilldir,scaling_factor,scaling_method_str,modname,generate_characters,CharGen_response,scaling_method_str)  # or return game_path
 

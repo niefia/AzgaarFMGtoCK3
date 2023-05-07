@@ -3,6 +3,7 @@ import religion
 import spreadsheets
 import rasterMaps
 import BFS
+import BFS_expandCells
 import os
 import modFiles
 import culture
@@ -89,10 +90,7 @@ def runGenExcel(modpath, mapfilldir, installdir, scaling_method, scaling_factor,
 
 
 def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
-
-
         #DATA TO RASTERIZED IMAGE
-
 
         #heightmap scaling methods
         if scaling_method == 1:
@@ -106,16 +104,13 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
         else:
             print("Invalid scaling method")
 
-
         # Generate provinces image
         rasterMaps.provincesCells(os.path.join(output_dir, "output.geojson"),
                                   os.path.join(output_dir, "map_data", "provinces.png"), scaling_factor)
         print("Generating Cells provinces")
 
 
-
         # Generate biomes images
-
         if scaling_method == 1:
             rasterMaps.biomes(os.path.join(output_dir, "output.geojson"), os.path.join(output_dir, "gfx", "map", "terrain"),
                           scaling_factor)
@@ -138,9 +133,12 @@ def runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor
         # Call the extract_zip_file function
         modFiles.extract_zip_file(input_zip_file, output_dir)
 
+        #rasterMaps.gradient_map(output_dir)
         rasterMaps.heightmap_to_mountain_biome(output_dir)
         rasterMaps.heightmap_blur_and_noise(output_dir)
-        rasterMaps.gradient_map(output_dir)
+        # rasterMaps.heightmap_blur_and_noise(output_dir,blur_amount)
+        # rasterMaps.gradient_map(output_dir)
+
 
 
 def runGenPaper(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
@@ -201,38 +199,96 @@ def runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_facto
 
 def runGenBFS(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname, CharGen_response,gamedir,output_dir):
 
-
         #BFS Functions
         print("Breadth First search started, this generates Baronies from cells and may take some time to run")
-        # Run Breadth First search to generate Baronies
-        BFS.bfs_distance(os.path.join(output_dir, "combined_data.xlsx"), os.path.join(output_dir, "cellsData.xlsx"),
-                         os.path.join(output_dir, "BFSoutput.xlsx"))
-        print("")
-        print("Breadth First search Complete")
 
-        # Assign unique color to Baronies
-        BFS.colorRandomBFS(os.path.join(output_dir, "BFSoutput.xlsx"))
-        print("Assigning unique color to Baronies")
+        # biomes_file = os.path.join(output_dir, "biomes.xlsx")     # not changed
+        # combined_data_file = os.path.join(output_dir, "combined_data.xlsx") # not changed
+        # cells_data_file = os.path.join(output_dir, "cellsData.xlsx")    # not changed
+        # updated_file = os.path.join(output_dir, "updated_file.xlsx")    # not changed
+        # bfs_distance_file = os.path.join(output_dir, "bfs_distance_file.xlsx")
+        # bfs_distance_file_with_neighbors = os.path.join(output_dir, "bfs_distance_file_with_neighbors.xlsx")
+        # # output_file_extended_neighbors = "../ck3_map_gen_data/_snibmap/snibboOutputTest_newBaronies_extended.xlsx"
+        # output_png = os.path.join(output_dir, "map_data", "provinces.png")
+        # provinceDef_file = os.path.join(output_dir, "provinceDef.xlsx")
+        # provinceDef_file_transformed = os.path.join(output_dir, "provinceDefTrans.xlsx")
+        # duchyDef_file = os.path.join(output_dir, "duchyDef.xlsx")
+        # final_file = os.path.join(output_dir, "_mapFiller/provinceDef.xlsx")
 
+        cells_data_file = os.path.join(output_dir, "cellsData.xlsx")    # not changed
+        updated_file = os.path.join(output_dir, "updated_file.xlsx")    # not changed
+        bfs_distance_file = os.path.join(output_dir, "bfs_distance_file.xlsx")
+        def_baronies_file = os.path.join(output_dir, "def_baronies_file.xlsx")
+        def_counties_file = os.path.join(output_dir, "def_counties_file.xlsx")
+        def_duchies_file = os.path.join(output_dir, "def_duchies_file.xlsx")
+        def_kingdoms_file = os.path.join(output_dir, "def_kingdoms_file.xlsx")
 
+        output_png = os.path.join(output_dir, "map_data", "provinces.png")
+        provinceDef_file = os.path.join(output_dir, "_mapFiller", "provinceDef.xlsx")
+        final_file = os.path.join(output_dir, "_mapFiller/provinceDef.xlsx")
+        
+        maxBaronySize = 5   # number of Cells in a Barony
+        maxCountySize = 3   # number of Baronies in a County
+        maxDuchySize = 5    # number of Counties in a Duchy
+        maxKingdomSize = 7  # number of Duchies in a Kingdom
+
+        BFS_expandCells.calculateBaronies(maxBaronySize, cells_data_file, bfs_distance_file, def_baronies_file)        
+        BFS_expandCells.calculateCounties(maxCountySize, def_baronies_file, def_counties_file)
+        BFS_expandCells.calculateDuchies(maxDuchySize, def_counties_file, def_duchies_file)
+        BFS_expandCells.calculateKingdoms(maxKingdomSize, def_duchies_file, def_kingdoms_file)
+
+        BFS.colorRandomBFS(bfs_distance_file)
         if scaling_method == 1:
             # Generate BFS provinces image
-            BFS.provinceMapBFS(os.path.join(output_dir, "BFSoutput.xlsx"), scaling_factor,
-                           os.path.join(output_dir, "map_data", "provinces.png"))
+            BFS.provinceMapBFS(bfs_distance_file, scaling_factor, output_png)    # nothing changed
             print("Generating BFS provinces")
         elif scaling_method == 2:
-            rasterMaps.provinceMapBFSAutoScaled(os.path.join(output_dir, "BFSoutput.xlsx"),
-                               os.path.join(output_dir, "map_data", "provinces.png"))
+            rasterMaps.provinceMapBFSAutoScaled(bfs_distance_file, output_png)
+        # BFS.provinceMapBFS(bfs_distance_file, 150, output_png) 
 
+        BFS.extractBFS(bfs_distance_file, provinceDef_file)   # nothing changed
 
-        #BFSProvDef
+        BFS_expandCells.createFinalOutput(provinceDef_file, def_counties_file, def_duchies_file, def_kingdoms_file, updated_file, final_file)
 
-        BFS.extractBFS(os.path.join(output_dir, "BFSoutput.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
+        ####### OLD
+        # # Make sure Baronies are not getting too big >> this is still very slow... at 20 the creation took around 50 mins - however a smaller size looks so much better on the map
+        # maxSizeBarony = 3        
+        # # Prepare starting points
+        # useCounties = False
+        # BFS.bfs_distance_to_new_baronies(combined_data_file, cells_data_file, maxSizeBarony, useCounties)    # new
+        # # Run Breadth First search to generate Baronies      
+        # BFS.bfs_distance(combined_data_file, cells_data_file, bfs_distance_file, useCounties)  # adjusted
+        # print("Breadth First search Complete")
+        # BFS.bfs_appendneighbors(cells_data_file, bfs_distance_file, bfs_distance_file_with_neighbors)  # new        
 
-        BFS.BaronyId(os.path.join(output_dir, "combined_data.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
-        BFS.ProvData(os.path.join(output_dir,"updated_file.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
-        BFS.cOrder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
-        BFS.finalorder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
+        # # Assign unique color to Baronies
+        # BFS.colorRandomBFS(bfs_distance_file_with_neighbors)           # adjusted
+        # print("Assigning unique color to Baronies")      
+
+        # if scaling_method == 1:
+        #     # Generate BFS provinces image
+        #     BFS.provinceMapBFS(bfs_distance_file_with_neighbors, scaling_factor, output_png)    # nothing changed
+        #     print("Generating BFS provinces")
+        # elif scaling_method == 2:
+        #     rasterMaps.provinceMapBFSAutoScaled(bfs_distance_file_with_neighbors, output_png)
+
+        # #BFSProvDef
+        # BFS.extractBFS(bfs_distance_file_with_neighbors, provinceDef_file)   # nothing changed
+
+        # BFS.BaronyId(combined_data_file, provinceDef_file)
+        # BFS.bfs_calcType(biomes_file, cells_data_file, provinceDef_file)      # not finished yet
+        # BFS.bfs_putNeighborsToTowns(cells_data_file, bfs_distance_file_with_neighbors, provinceDef_file, provinceDef_file_transformed)
+
+        # BFS.ProvData(updated_file, provinceDef_file_transformed, provinceDef_file_transformed)  # nothing changed
+        # BFS.cOrder(provinceDef_file_transformed)    # adjusted
+
+        # BFS.assignEmpireAndDuchyId(provinceDef_file_transformed, duchyDef_file)
+        # BFS.finalorder(duchyDef_file, final_file)
+
+        # BFS.ProvData(os.path.join(output_dir,"updated_file.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"))
+        # BFS.cOrder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))        
+        # BFS.finalorder(os.path.join(output_dir,"_mapFiller/provinceDef.xlsx"))
+
         BFS.convert_xlsx_to_xls(os.path.join(output_dir, "_mapFiller/provinceDef.xlsx"), os.path.join(output_dir, "_mapFiller/provinceDef.xls"))
         spreadsheets.combined_data_empires(os.path.join(output_dir, "combined_data.xlsx"))
         print("Applied Vassal/Suzerain relationships to combined data")
