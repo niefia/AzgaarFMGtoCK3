@@ -294,6 +294,24 @@ class App(customtkinter.CTk):
                                     "Invalid value for Blur Radius, setting to 100k default of 7")
                 blur_amount = 7
 
+                # Check if any of the text boxes are empty
+            if any(value == '' for value in[modpath, mapfilldir, installdir]):
+                messagebox.showinfo("Error", "Please fill in all the setup paths.")
+                self.Conversion_button.configure(state="normal")
+                self.loading_wheel.grid_forget()
+                self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
+
+                return
+
+            if any(value == 'modname' for value in[modname]):
+                messagebox.showinfo("Error", "Mod Name empty.")
+                self.Conversion_button.configure(state="normal")
+                self.loading_wheel.grid_forget()
+                self.Conversion_button.grid(row=4, column=0, padx=20, pady=20, sticky="n")
+
+                return
+
+
             if scaling_method_str == "Manual Scaling":
                 scaling_method = 1
                 scaling_factor = self.Manual_Scaling_Entry.get()
@@ -326,10 +344,10 @@ class App(customtkinter.CTk):
                 generate.runGenRaster(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                       CharGen_response, gamedir, output_dir,blur_amount)
                 self.Conversion_progress_bar.set(0.35)
-                self.status_label.configure(text="Generating Rivers")
-                generate.GenerateRivers(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
-                               CharGen_response, gamedir, output_dir)
-                self.Conversion_progress_bar.set(0.37)
+                print("River code disabled, commented out below this line")
+                #self.status_label.configure(text="Generating Rivers")
+               # generate.GenerateRivers(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,CharGen_response, gamedir, output_dir)
+                #self.Conversion_progress_bar.set(0.37)
                 self.status_label.configure(text="Generating Religions Data")
                 generate.runGenRelCult(modpath, mapfilldir, installdir, scaling_method, scaling_factor, modname,
                                        CharGen_response, gamedir, output_dir)

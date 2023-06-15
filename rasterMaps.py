@@ -10,6 +10,12 @@ from PIL import Image
 import numpy as np
 import random
 import riverGen
+import os
+import numpy as np
+from scipy.ndimage import gaussian_filter
+from PIL import Image, ImageFilter
+
+
 
 # Declare global variables
 scale_factor = None
@@ -102,12 +108,19 @@ def heightmapAutoScaledfunc(geojson_file, output_file):
 
 #heightmapAutoScaledfunc("output.geojson",  "heightmap.png")
 
-def heightmap_blur_and_noise(output_dir,blur_amount):
-    import numpy as np
-    from scipy.ndimage import gaussian_filter
-    from PIL import Image, ImageFilter
+
+
+def heightmap_blur_and_noise(output_dir, blur_amount):
+    # Define file paths
+    heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
+    output_file_for_papermap = os.path.join(output_dir, "map_data/heightmap_for_paper.png")
+    output_file = os.path.join(output_dir, "map_data/heightmap_blurred.png")
+
+    # Check if blur_amount is zero
     if blur_amount == 0:
-        return  # skip the function if no blur chosen
+        img = Image.open(heightmap_file)
+        img.save(output_file_for_papermap, "PNG")
+        return
 
     # Define Perlin noise function
     def noise(x, y):
@@ -115,12 +128,10 @@ def heightmap_blur_and_noise(output_dir,blur_amount):
         n = (n << 13) ^ n
         return (1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0)
 
-
     # Load the image
-    heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
     img = Image.open(heightmap_file)
-    output_file_for_papermap= os.path.join(output_dir, "map_data/heightmap_for_paper.png")
     img.save(output_file_for_papermap, "PNG")
+
     # Convert the image to a numpy array
     arr = np.array(img, dtype=np.float32)
 
@@ -128,18 +139,17 @@ def heightmap_blur_and_noise(output_dir,blur_amount):
     arr = gaussian_filter(arr, sigma=blur_amount)
 
     # Add Perlin noise to the array
-    for i in range(arr.shape[0]):
-        print(i)
-        for j in range(arr.shape[1]):
-            arr[i][j] += 0.10 * noise(i/50.0, j/50.0)
-            #10% opacity noise layer
+    perlin_noise = np.vectorize(noise)  # Vectorize the noise function
+    perlin_arr = perlin_noise(*np.indices(arr.shape) / 50.0)
+    arr += 0.10 * perlin_arr  # 10% opacity noise layer
 
     # Convert the array back to an image
-    img = Image.fromarray(arr.astype(np.uint16))
+    arr = np.clip(arr, 0, 65535).astype(np.uint16)  # Clip values to valid range
+    img = Image.fromarray(arr)
 
     # Save the blurred image with Perlin noise to output file
-    output_file = os.path.join(output_dir, "map_data/heightmap.png")
     img.save(output_file, "PNG")
+
 
 
 
@@ -216,21 +226,22 @@ def heightmap_to_mountain_biome(output_dir):
 
 
 def gradient_map(output_dir):
-
     # Load the heightmap image as a NumPy array
     heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
+    heightmap = np.array(Image.open(heightmap_file))
 
     # Compute the gradient map using NumPy's gradient function
-    gx, gy = np.gradient(heightmap)
+    gx, gy = np.gradient(heightmap.astype(float))
     gradient = np.sqrt(gx**2 + gy**2)
 
     # Normalize the gradient map to the range [0, 255]
-    gradient = (gradient - gradient.min()) / (gradient.max() - gradient.min()) * 255
+    gradient = (gradient - np.min(gradient)) / (np.max(gradient) - np.min(gradient)) * 255
     gradient = gradient.astype(np.uint8)
 
     # Save the gradient map as an image
+    gradient_image = Image.fromarray(gradient)
+    gradient_image.save(os.path.join(output_dir, 'gradient.png'))
 
-    Image.fromarray(gradient).save(os.path.join(output_dir,'gradient.png'))
 
 
 #gradient_map()
