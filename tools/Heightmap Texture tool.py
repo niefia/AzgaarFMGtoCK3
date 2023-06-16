@@ -108,7 +108,6 @@ def generate_mask(mask):
     upper_threshold = mask["upper_threshold"]
 
     # Load the image
-    heightmap_file = os.path.join(output_dir, "map_data/heightmap.png")
     img = Image.open(heightmap_file)
     # Convert the image to a NumPy array
     arr = np.array(img)

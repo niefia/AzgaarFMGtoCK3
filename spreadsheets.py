@@ -512,15 +512,22 @@ def terrainGen(cellsData,provinceTerraintxt):
     # loop through each row in the DataFrame and assign a terrain based on the biome
     for i, row in df.iterrows():
         biome = row['biome']
-        terrain_weights = biome_terrain_map[biome]
+        terrain_weights = biome_terrain_map.get(biome)
 
-        # check for population and override terrain for Temperate deciduous forest biomes
-        if biome == 'Temperate deciduous forest' and row['population'] > 40000:
-            assigned_terrain = 'farmlands'
-        elif biome == 'Hot Desert' and row['population'] > 40000:
-            assigned_terrain = 'floodplains'
+        # check if biome is not found in the mapping
+        if terrain_weights is None:
+            assigned_terrain = 'plains'
         else:
-            assigned_terrain = random.choices(list(terrain_weights.keys()), weights=list(terrain_weights.values()))[0]
+            # check for population and override terrain for specific biomes
+            if biome == 'Temperate deciduous forest' and row['population'] > 40000:
+                assigned_terrain = 'farmlands'
+            elif biome == 'Hot Desert' and row['population'] > 40000:
+                assigned_terrain = 'floodplains'
+            else:
+                assigned_terrain = random.choices(
+                    list(terrain_weights.keys()),
+                    weights=list(terrain_weights.values())
+                )[0]
 
         terrain_list.append(f"{row['i']}={assigned_terrain}")
 

@@ -49,13 +49,15 @@ import localization
 import uictk
 import customtkinter
 import sys
-sys.stdout = open("log.txt", "w")
+
+
+#sys.stdout = open("log.txt", "w")
 
 if __name__ == "__main__":
     root = customtkinter.CTk
     app = uictk.App()
     app.mainloop()
-    sys.stdout.close()
+    #sys.stdout.close()
 
 
 
