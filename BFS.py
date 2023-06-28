@@ -19,7 +19,8 @@ def bfs_distance(combined_data_file, cells_data_file, output_file):
     combined_data = pd.read_excel(combined_data_file, sheet_name="burgs")
     cells_data = pd.read_excel(cells_data_file, usecols=["id", "neighbors", "coordinates", "type", "County"])
 
-    cells_data['neighbors'] = cells_data['neighbors'].apply(lambda x: [int(n) for n in x.strip('[]').split(',')])
+    cells_data['neighbors'] = cells_data['neighbors'].apply(lambda x: [int(n) for n in x.strip('[]').split(',') if n.strip()])
+
 
     # Create a dictionary to map cell IDs to town names
     id_to_town = dict(zip(combined_data["cell"], combined_data["name"]))

@@ -227,6 +227,38 @@ class App(customtkinter.CTk):
             "Restart to update": "Reiniciar para actualizar",
 
         }
+        PORTUGUESE = {
+            "mod_dir": "Diretório de Mods para Crusader Kings III:",
+            "map_filler_dir": "Diretório de Preenchimento de Mapa (Map Filler):",
+            "install_dir": "Diretório do Jogo Crusader Kings III:",
+            "scaling_factor_label": "Qual o fator de Escala (apenas quando se usa Escala Manual):",
+            "mod_name": "Nome do Mod",
+            "charGen": "Gerar personagens que possuam os títulos a nivel de Estado(State)?",
+            "runConverter": "Executar Conversor",
+            "scaling_method": "Selecionar método de Escala",
+            "manualScaling": "Escala Manual",
+            "autoScaling": "Escala Automática",
+            "yes": "Sim",
+            "no": "Não",
+            "conversion": "Conversão",
+            "home": "Início",
+            "setup_frame_label": "Caminhos e Configuração",
+            "setup": "Configuração",
+            "Options": "Opções",
+            "Guide": "Guia",
+            "FAQ": "FAQ",
+            "PH_Installdir": "O diretório de instalação do CK3 encontra-se em Steam>CK3>Properties>Local Files>Browse",
+            "PH_Modfolder": "C:/Users/UTILIZADOR/Documents/Paradox Interactive/Crusader Kings III/mod",
+            "PH_MapFiller": "A pasta onde instalaste a Ferramenta de Preenchimento de Mapa (Map Filler Tool)",
+            "Select Scaling Method": "Selecionar método de Escala",
+            "Start Conversion": "Iniciar Conversão",
+            "Save Paths": "Guardar Caminhos",
+            "Load Paths": "Carregar Caminhos",
+            "Generate Characters": "Gerar Personagens",
+            "DontGenerate": "Não Gerar Personagens",
+            "Restart to update": "Reiniciar para Atualizar",
+
+        }
 
 
 
@@ -255,6 +287,9 @@ class App(customtkinter.CTk):
         elif language == 'SPANISH':
             print("Language set to SPANISH")
             LANGUAGE = SPANISH
+        elif language == 'PORTUGUESE':
+            print("Language set to PORTUGUESE")
+            LANGUAGE = PORTUGUESE
         else:
             print('No language found, setting to English as backup')
             LANGUAGE = ENGLISH
@@ -579,7 +614,7 @@ class App(customtkinter.CTk):
         self.conversion_frame_button.grid(row=4, column=0, sticky="ew")
 
         self.language_menu = customtkinter.CTkOptionMenu(self.navigation_frame,
-                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN",'POLISH','SPANISH'],
+                                                         values=["ENGLISH", "FRANÇAIS","DEUTSCH","HUNGARIAN",'POLISH','SPANISH','PORTUGUESE'],
                                                          command=update_language,
                                                          fg_color="#191919", button_color="#191919")
 
