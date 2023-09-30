@@ -44,11 +44,11 @@ def json_to_sheet(input_file_path, output_file_path):
         data = json.load(file)
 
     # Extract the "states" and "provinces" fields from the data
-    states = data["cells"]["states"]
-    provinces = data["cells"]["provinces"]
-    culture = data["cells"]["cultures"]
-    religions = data["cells"]["religions"]
-    burgs = data["cells"]["burgs"]
+    states = data["pack"]["states"]
+    provinces = data["pack"]["provinces"]
+    culture = data["pack"]["cultures"]
+    religions = data["pack"]["religions"]
+    burgs = data["pack"]["burgs"]
 
     # Create a list of dictionaries, where each dictionary represents a row of data for the states
     states_rows = []

@@ -19,18 +19,22 @@ def familyGen(input_file_path, output_folder_path):
     # Loop through the rows of the DataFrame
     for index, row in df.iterrows():
         name = row["name"]
-        first_word = name.split(" ")[0].lower()  # Convert first_word to lowercase
-        mainFamName = re.sub(r'\W+', '', name).lower()
-        print (mainFamName)
-        value = row["origin"]
+        if pd.notna(name):  # Check if the name is not empty or NaN
+            name = str(name)
 
-        # Check if the value in column i is 0
-        if value == 0:
-            # Write the name to a text file with "00_" at the start
-            file_name = f"00_{mainFamName}.txt"
-            file_path = os.path.join(folder_path, file_name)
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write(f"rf_{mainFamName} = {{\n\tgraphical_faith = 'orthodox_gfx' \n\thostility_doctrine = abrahamic_hostility_doctrine\n\tdoctrine_background_icon = core_tenet_banner_christian.dds\n}}")
+            #first_word = name.split(" ")[0].lower()  # Convert first_word to lowercase
+            mainFamName = re.sub(r'\W+', '', name).lower()
+            print(mainFamName)
+            value = row["origin"]
+
+            # Check if the value in column i is 0
+            if value == 0:
+                # Write the name to a text file with "00_" at the start
+                file_name = f"00_{mainFamName}.txt"
+                file_path = os.path.join(folder_path, file_name)
+                with open(file_path, "w", encoding="utf-8") as file:
+                    file.write(
+                        f"rf_{mainFamName} = {{\n\tgraphical_faith = 'orthodox_gfx' \n\thostility_doctrine = abrahamic_hostility_doctrine\n\tdoctrine_background_icon = core_tenet_banner_christian.dds\n}}")
 
 
 def religionChildren(input_file_path, output_file_path):
@@ -111,7 +115,7 @@ def religionGen(input_file_path,folder_path):
         id = row["i"]
         name = row["name"]
         type = row["type"]
-        first_word = name.split(" ")[0]
+        #first_word = name.split(" ")[0]
         value = row["origin"]
         reform = ["unreformed_faith_doctrine"]
         #paganroots = "no"
@@ -126,8 +130,8 @@ def religionGen(input_file_path,folder_path):
         id = row["i"]
         name = row["name"]
         type = row["type"]
-        first_word = name.split(" ")[0]
-        mainRelName = name.replace(" ", "_")
+        # = name.split(" ")[0]
+        #mainRelName = name.replace(" ", "_")
         mainFamName = re.sub(r'\W+', '', name).lower()
         print(mainFamName)
         value = row["origin"]

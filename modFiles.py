@@ -27,7 +27,7 @@ def biomeWrite(json_file_path, xlsx_file_path, image_folder_path):
         data = json.load(f)
 
     # Extract the biome names and IDs from the "biomes" section of the data
-    biomes = [(name, id) for name, id in zip(data['biomes']['name'], data['biomes']['i'])]
+    biomes = [(name, id) for name, id in zip(data['biomesData']['name'], data['biomesData']['i'])]
 
     # Create a new Excel workbook and worksheet to store the data
     wb = openpyxl.Workbook()
